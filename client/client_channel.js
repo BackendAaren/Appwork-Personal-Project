@@ -1,4 +1,7 @@
-import { MessageQueue, MessageType } from "./broker_channel.js";
+import {
+  MessageQueue,
+  MessageType,
+} from "../server/controller/messageQueue.js";
 import { EventEmitter } from "events";
 
 const messageProcessor = new EventEmitter();

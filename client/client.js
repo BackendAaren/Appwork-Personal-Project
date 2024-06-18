@@ -1,4 +1,4 @@
-import { MessageQueue, MessageType } from "./broker.js";
+import { MessageQueue, MessageType } from "../server/controller/broker.js";
 
 // Producer function
 function producer(messageQueue, messageType, payload) {

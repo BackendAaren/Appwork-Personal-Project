@@ -1,55 +1,50 @@
-// Message object
-export class MessageType {
-  constructor(messageType, payload) {
-    this.messageType = messageType;
-    this.payload = payload;
-    // You can add any other fields here as needed
-  }
-}
+import { MessageQueue } from "./messageQueue.js";
 
-// // Example usage:
-// const message1 = new MessageType(1, "Payload 1");
-// console.log(message1);
+const MAX_RETRIES = 3; // 設定最大重試次數
 
-// const message2 = new MessageType(2, "Payload 2");
-// console.log(message2);
-
-export class MessageQueue {
-  constructor() {
-    this.queue = [];
-    this.lock = false;
-    this.waiting = [];
+export default class Broker {
+  constructor(messageQueue) {
+    this.messageQueue = messageQueue;
+    this.inProgressMessages = {}; // 追蹤正在處理的訊息
   }
 
-  async enqueue(message) {
-    this.queue.push(message);
-    if (this.waiting.length > 0) {
-      const resolveNext = this.waiting.shift();
-      resolveNext();
+  async processMessage(channel, handleMessage) {
+    while (true) {
+      const message = await this.messageQueue.dequeue(channel);
+      if (!message) continue; // 如果 dequeue 返回 null，繼續等待下一個訊息
+
+      const messageId = message.messageId; // 假設 MessageType 類有 messageId 欄位
+
+      // 檢查是否已經處理過這個訊息，如果是則跳過
+      if (this.inProgressMessages[messageId]) continue;
+
+      try {
+        // 處理訊息
+        await handleMessage(message.payload);
+
+        // 訊息處理成功，從 inProgressMessages 中移除
+        delete this.inProgressMessages[messageId];
+
+        // 手動確認，從 message queue 中移除訊息
+        await this.messageQueue.confirm(channel);
+      } catch (error) {
+        console.error(`Error processing message ${messageId}:`, error);
+
+        // 處理失敗，增加重試次數
+        message.retries = message.retries ? message.retries + 1 : 1;
+
+        // 如果重試次數未達上限，重新加入 message queue 中等待重試
+        if (message.retries <= MAX_RETRIES) {
+          await this.messageQueue.requeue(channel, message);
+          console.log(
+            `Message ${messageId} requeued for retry (${message.retries}/${MAX_RETRIES})`
+          );
+        } else {
+          console.log(
+            `Message ${messageId} retries exceeded. Message discarded.`
+          );
+        }
+      }
     }
   }
-  async dequeue() {
-    while (this.queue.length === 0) {
-      await new Promise((resolve) => this.waiting.push(resolve));
-    }
-    return this.queue.shift();
-  }
 }
-
-// Example usage:
-// const mq = new MessageQueue();
-
-// // Producer
-// setInterval(() => {
-//   const message = new MessageType("text", "Hello World");
-//   console.log("Enqueuing:", message);
-//   mq.enqueue(message);
-// }, 1000);
-
-// // Consumer
-// (async () => {
-//   while (true) {
-//     const message = await mq.dequeue();
-//     console.log("Dequeued:", message);
-//   }
-// })();
