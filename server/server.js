@@ -46,7 +46,7 @@ app.get("/dequeue/:channel", async (req, res) => {
 
   try {
     const message = await messageQueue.dequeue(channel);
-    console.log(message);
+    console.log(messageQueue.getStats());
     res.status(200).json(message);
   } catch (error) {
     res

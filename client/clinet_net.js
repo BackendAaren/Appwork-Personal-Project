@@ -100,10 +100,10 @@ setInterval(() => {
     messageType: "text",
     payload: `Message:${Math.random() + 10}`,
   });
-}, 1000);
+}, 10);
 
 setInterval(() => {
   client.dequeueMessage("channel2");
-}, 1000);
+}, 100);
 
 // client.dequeueMessage("channel2");
