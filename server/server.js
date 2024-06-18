@@ -1,5 +1,6 @@
 import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
+import osUtils from "node-os-utils";
 
 import express from "express";
 import bodyParser from "body-parser";
@@ -62,6 +63,26 @@ app.get("/dequeue/:channel", async (req, res) => {
       .status(500)
       .json({ error: "Internal server error", details: error.message });
   }
+});
+
+app.get("/watcher/systemStatus", (req, res) => {
+  const messageQueueData = messageQueue.getStats();
+
+  res.status(200).send(messageQueueData);
+});
+app.get("/watcher/operationSystemStatus", async (req, res) => {
+  const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
+    return cpuPercentage;
+  });
+
+  const memUsage = await osUtils.mem.info().then((memInfo) => {
+    console.log("Total Memory:", memInfo.totalMemMb, "MB");
+    console.log("Free Memory:", memInfo.freeMemMb, "MB");
+    console.log("Used Memory:", memInfo.usedMemMb, "MB");
+    return memInfo;
+  });
+
+  res.status(200).send({ cpuUsage, memUsage });
 });
 
 // Start server

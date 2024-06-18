@@ -1,4 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
+import os from "os";
+import { timeStamp } from "console";
 export class MessageType {
   constructor(channel, messageType, payload) {
     this.channel = channel;
@@ -13,12 +15,7 @@ export class MessageQueue {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
-    this.monitorStatus = {
-      consumedCount: 0,
-      completedMessage: null,
-      processingMessage: null,
-      processingPercentage: 0,
-    };
+
     this.stats = {
       length: {},
       throughput: {},
@@ -26,28 +23,69 @@ export class MessageQueue {
       blocked: {},
       messageTotalComplete: {},
       now_executing: {},
+      inboundRate: {},
+      outboundRate: {},
     };
+    // 定義計算進入和出站速率的計時器
+    setInterval(() => {
+      this.calculateInboundRates();
+      this.calculateOutboundRates();
+    }, 1000); // 每秒執行一次計算
+  }
+
+  calculateInboundRates() {
+    const now = Date.now();
+    Object.keys(this.stats.inboundRate).forEach((channel) => {
+      const { count, timestamp } = this.stats.inboundRate[channel];
+      const elapsedTime = (now - timestamp) / 1000;
+      const inboundRate = elapsedTime > 0 ? count / elapsedTime : 0;
+      console.log(
+        `Channel ${channel} inbound rate: ${inboundRate.toFixed(2)} MPS`
+      );
+      this.stats.inboundRate[channel] = {
+        count: 0,
+        timestamp: now,
+        inboundRate: `${inboundRate.toFixed(2)}MPS`,
+      };
+    });
+  }
+
+  calculateOutboundRates() {
+    const now = Date.now();
+    Object.keys(this.stats.outboundRate).forEach((channel) => {
+      const { count, timestamp } = this.stats.outboundRate[channel];
+      const elapsedTime = (now - timestamp) / 1000;
+      const outboundRate = elapsedTime > 0 ? count / elapsedTime : 0;
+      console.log(
+        `Channel ${channel} outbound rate: ${outboundRate.toFixed(2)} MPS`
+      );
+      this.stats.outboundRate[channel] = {
+        count: 0,
+        timestamp: now,
+        outboundRate: `${outboundRate.toFixed(2)}MPS`,
+      };
+    });
   }
 
   updateMonitorStatus(statusUpdates) {
-    Object.assign(this.monitorStatus, statusUpdates);
+    Object.assign(this.stats, statusUpdates);
     this.broadcastMonitorStatus();
   }
   //傳監控資訊給所有連線監控端
   broadcastMonitorStatus() {
-    const statusMessage = JSON.stringify(this.monitorStatus);
-    this.monitorClients.forEach((client) => {
+    const statusMessage = JSON.stringify(this.stats);
+    this.stats.forEach((client) => {
       client.send(statusMessage);
     });
   }
   //處理websocket連線
   handleMonitorClient(client) {
-    this.monitorClients.add(client);
+    this.stats.add(client);
 
-    client.send(JSON.stringify(this.monitorStatus));
+    client.send(JSON.stringify(this.stats));
 
     client.on("close", () => {
-      this.monitorClients.delete(client);
+      this.stats.delete(client);
     });
   }
 
@@ -66,6 +104,15 @@ export class MessageQueue {
       this.stats.throughput[channel] = { in: 0, out: 0 };
     }
     this.stats.throughput[channel].in += 1;
+    // 計算進入消息數量
+    if (!this.stats.inboundRate[channel]) {
+      this.stats.inboundRate[channel] = {
+        count: 0,
+        timestamp: Date.now(),
+        inboundRate: 0,
+      };
+    }
+    this.stats.inboundRate[channel].count += 1;
 
     //若dequeue進入等待狀態，enqueue將information推入channel將resolve取出告知dequeue繼續運作
     if (this.waiting[channel] && this.waiting[channel].length > 0) {
@@ -105,9 +152,17 @@ export class MessageQueue {
     this.stats.messageTotalComplete[channel].totalComplete += 1;
 
     //計算延遲
-
     const dequeueTime = Date.now();
     this.stats.delay[channel] = dequeueTime - message.enqueueTime;
+    //計算outboundRate
+    if (!this.stats.outboundRate[channel]) {
+      this.stats.outboundRate[channel] = {
+        count: 0,
+        timesStamp: Date.now(),
+        outboundRate: 0,
+      };
+    }
+    this.stats.outboundRate[channel].count += 1;
 
     return message;
   }
