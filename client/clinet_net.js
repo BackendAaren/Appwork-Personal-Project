@@ -82,26 +82,28 @@ class MessageQueueClient {
 const client = new MessageQueueClient("localhost", 3001);
 
 // Enqueue sample messages
-// for (let i = 0; i < 20; i++) {
-//   client.enqueueMessage("channel1", {
-//     messageType: "text",
-//     payload: `Message${i}`,
-//   });
-// }
-// for (let i = 0; i < 5; i++) {
-//   client.enqueueMessage("channel2", {
-//     messageType: "text",
-//     payload: `Message${i + 10}`,
-//   });
-// }
-
-setInterval(() => {
+for (let i = 0; i < 20; i++) {
+  client.enqueueMessage("channel1", {
+    messageType: "text",
+    payload: `Message${i}`,
+  });
+}
+for (let i = 0; i < 5; i++) {
   client.enqueueMessage("channel2", {
     messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
+    payload: `Message${i + 10}`,
   });
-}, 10);
+}
 
+// setInterval(() => {
+//   client.enqueueMessage("channel2", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 10);
+setInterval(() => {
+  client.dequeueMessage("channel1");
+}, 100);
 setInterval(() => {
   client.dequeueMessage("channel2");
 }, 100);

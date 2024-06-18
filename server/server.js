@@ -1,16 +1,25 @@
 import http from "http";
+import WebSocket, { WebSocketServer } from "ws";
 
 import express from "express";
 import bodyParser from "body-parser";
+// Import MessageQueue and MessageType classes
+import { MessageQueue, MessageType } from "./controller/messageQueue.js";
 
 const app = express();
+//http server
 const PORT = 3001;
+const server = http.createServer();
+//webSocket Server
+const wss = new WebSocketServer({ server });
+// 監聽 WebSocket 連線
 
 // Middleware
 app.use(bodyParser.json());
 
-// Import MessageQueue and MessageType classes
-import { MessageQueue, MessageType } from "./controller/messageQueue.js";
+wss.on("connection", (ws) => {
+  messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
+});
 
 // Initialize MessageQueue instance
 const messageQueue = new MessageQueue();
