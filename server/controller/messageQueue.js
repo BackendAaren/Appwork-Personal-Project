@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import os from "os";
 import { timeStamp } from "console";
+import { WebSocket } from "ws";
 export class MessageType {
   constructor(channel, messageType, payload) {
     this.channel = channel;
@@ -30,6 +31,7 @@ export class MessageQueue {
     setInterval(() => {
       this.calculateInboundRates();
       this.calculateOutboundRates();
+      this.broadcastMonitorStatus();
     }, 1000); // 每秒執行一次計算
   }
 
@@ -74,18 +76,20 @@ export class MessageQueue {
   //傳監控資訊給所有連線監控端
   broadcastMonitorStatus() {
     const statusMessage = JSON.stringify(this.stats);
-    this.stats.forEach((client) => {
-      client.send(statusMessage);
+    this.monitorClients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(statusMessage);
+      }
     });
   }
   //處理websocket連線
   handleMonitorClient(client) {
-    this.stats.add(client);
+    this.monitorClients.add(client);
 
     client.send(JSON.stringify(this.stats));
 
     client.on("close", () => {
-      this.stats.delete(client);
+      this.monitorClients.delete(client);
     });
   }
 
@@ -153,7 +157,7 @@ export class MessageQueue {
 
     //計算延遲
     const dequeueTime = Date.now();
-    this.stats.delay[channel] = dequeueTime - message.enqueueTime;
+    this.stats.delay[channel] = (dequeueTime - message.enqueueTime) / 1000;
     //計算outboundRate
     if (!this.stats.outboundRate[channel]) {
       this.stats.outboundRate[channel] = {

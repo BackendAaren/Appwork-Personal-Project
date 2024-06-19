@@ -1,29 +1,31 @@
 import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import osUtils from "node-os-utils";
+import path from "path";
+import { fileURLToPath } from "url"; // 引入 fileURLToPath
+import { dirname } from "path"; // 引入 dirname
 
 import express from "express";
 import bodyParser from "body-parser";
 // Import MessageQueue and MessageType classes
 import { MessageQueue, MessageType } from "./controller/messageQueue.js";
-
+// 取得目前模組的檔案路徑
+const __filename = fileURLToPath(import.meta.url);
+// 從檔案路徑中取得目錄路徑
+const __dirname = dirname(__filename);
 const app = express();
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, "public")));
 //http server
-const PORT = 3001;
-const server = http.createServer();
-//webSocket Server
-const wss = new WebSocketServer({ server });
-// 監聽 WebSocket 連線
 
 // Middleware
 app.use(bodyParser.json());
-
-wss.on("connection", (ws) => {
-  messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
-});
-
 // Initialize MessageQueue instance
 const messageQueue = new MessageQueue();
+
+// wss.on("connection", (ws) => {
+//   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
+// });
 
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", (req, res) => {
@@ -65,11 +67,6 @@ app.get("/dequeue/:channel", async (req, res) => {
   }
 });
 
-app.get("/watcher/systemStatus", (req, res) => {
-  const messageQueueData = messageQueue.getStats();
-
-  res.status(200).send(messageQueueData);
-});
 app.get("/watcher/operationSystemStatus", async (req, res) => {
   const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
     return cpuPercentage;
@@ -85,7 +82,23 @@ app.get("/watcher/operationSystemStatus", async (req, res) => {
   res.status(200).send({ cpuUsage, memUsage });
 });
 
+app.get("/watcher.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "view", "public", "watcher.html"));
+});
+
+// Create HTTP server and attach express app to it
+const server = http.createServer(app);
+
+// Create WebSocket server and attach it to the HTTP server
+const wss = new WebSocketServer({ server });
+
+// Listen for WebSocket connections
+wss.on("connection", (ws) => {
+  messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
+});
+
 // Start server
-http.createServer(app).listen(PORT, () => {
+const PORT = 3001;
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

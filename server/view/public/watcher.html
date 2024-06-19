@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Monitor Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0; /* Light gray background */
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        #stats {
+            background-color: #fff; /* White background */
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            max-width: 600px; /* Limit width for better readability */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        pre {
+            white-space: pre-wrap; /* Preserve line breaks */
+            font-size: 14px; /* Adjust font size */
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Monitor Client</h1>
+    <div id="stats"></div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:3001');
+
+        ws.onopen = () => {
+            console.log('Connected to the server');
+        };
+
+        ws.onmessage = (event) => {
+            const stats = JSON.parse(event.data);
+            updateStatsDisplay(stats);
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from the server');
+        };
+
+        function updateStatsDisplay(stats) {
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = '<pre>' + JSON.stringify(stats, null, 2) + '</pre>';
+        }
+    </script>
+</body>
+</html>
