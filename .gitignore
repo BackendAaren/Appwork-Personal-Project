@@ -7,3 +7,4 @@ uploads/*
 certificate.crt
 private.key
 ca_bundle.crt
+.vscode

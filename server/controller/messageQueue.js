@@ -1,13 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
 import os from "os";
-import { timeStamp } from "console";
 import { WebSocket } from "ws";
+import { MongoDB } from "../model/mongodb.js";
+import { channel } from "diagnostics_channel";
 export class MessageType {
-  constructor(channel, messageType, payload) {
+  constructor(channel, messageType, payload, messageID, enqueueTime) {
     this.channel = channel;
     this.messageType = messageType;
     this.payload = payload;
-    this.messageID = null;
+    this.messageID = messageID;
+    this.enqueueTime = enqueueTime;
   }
 }
 
@@ -16,6 +18,8 @@ export class MessageQueue {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
+    this.dbUrl = "mongodb://localhost:27017";
+    this.dbName = "RabbitMQ_storage";
 
     this.stats = {
       length: {},
@@ -33,6 +37,52 @@ export class MessageQueue {
       this.calculateOutboundRates();
       this.broadcastMonitorStatus();
     }, 1000); // 每秒執行一次計算
+    this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
+    this.recoverMessagesFromMongoDB();
+    // this.mongoDB.connect();
+    process.on("SIGINT", async () => {
+      await this.mongoDB.close();
+      process.exit();
+    });
+  }
+
+  async recoverMessagesFromMongoDB() {
+    try {
+      await this.mongoDB.connect();
+      const index_collection = this.mongoDB.getCollection("message_index");
+      let message_index = await index_collection.find().toArray();
+      const channelNames = message_index.map((item) => item.channel);
+      // console.log(message_index);
+      // console.log(channelNames);
+      for (const channel of channelNames) {
+        console.log(channel);
+        const collection = this.mongoDB.getCollection("messages");
+        const messages = await collection
+          .find({ status: "unprocessed", channel: `${channel}` })
+          .toArray();
+        if (messages.length > 0) {
+          // console.log("message recovering....");
+          // console.log(messages);
+          const now = Date.now();
+          this.channels[channel] = messages.map(
+            (msg) =>
+              new MessageType(
+                msg.channel,
+                msg.messageType,
+                msg.payload,
+                msg.messageID,
+                now
+              )
+          );
+
+          this.stats.length[channel] = this.channels[channel].length;
+          console.log(this.stats.length[channel]);
+        }
+      }
+      console.log("Recover messages from mongodb successfully");
+    } catch (error) {
+      console.error("Failed to recover message from MongoDB");
+    }
   }
 
   calculateInboundRates() {
@@ -93,14 +143,37 @@ export class MessageQueue {
     });
   }
 
-  async enqueue(channel, message) {
+  async enqueue(channel, message, isSync = true) {
     const enqueueTime = Date.now();
     message.messageID = uuidv4().slice(0, 7);
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
     this.channels[channel].push(message);
+    console.log(message);
     message.enqueueTime = enqueueTime;
+    // console.log(message);
+    //Persistent system
+    if (isSync) {
+      await this.mongoDB
+        .getCollection(`messages`)
+        .insertOne({ ...message, channel, status: "unprocessed" });
+      await this.mongoDB
+        .getCollection(`message_index`)
+        .createIndex({ channel: 1 }, { unique: true });
+      await this.mongoDB.getCollection(`message_index`).insertOne({ channel });
+    } else {
+      this.mongoDB
+        .getCollection(`messages`)
+        .insertOne({ ...message, channel, status: "unprocessed" })
+        .catch((err) =>
+          console.error("Failed to save message to MongoDB", err)
+        );
+      await this.mongoDB
+        .getCollection(`message_index`)
+        .updateOne({ channel }, { $set: { channel } }, { upsert: true });
+    }
+
     //監控佇列長度
     this.stats.length[channel] = this.channels[channel].length;
     //計算吞吐量
@@ -138,6 +211,7 @@ export class MessageQueue {
       await new Promise((resolve) => this.waiting[channel].push(resolve));
     }
     const message = this.channels[channel].shift();
+    console.log(message);
 
     //計算throughput
     if (!this.stats.throughput[channel]) {

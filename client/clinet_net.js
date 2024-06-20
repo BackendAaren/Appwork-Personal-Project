@@ -95,34 +95,34 @@ const client = new MessageQueueClient("localhost", 3001);
 //   });
 // }
 
-setInterval(() => {
-  client.enqueueMessage("Aaren", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 10);
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 10);
+// setInterval(() => {
+//   client.enqueueMessage("Aaren", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 100);
+// setInterval(() => {
+//   client.enqueueMessage("channel1", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 200);
 
-setInterval(() => {
-  client.enqueueMessage("channel2", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 10);
+// setInterval(() => {
+//   client.enqueueMessage("channel2", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 300);
 setInterval(() => {
   client.dequeueMessage("channel1");
-}, 1000);
+}, 100);
 setInterval(() => {
   client.dequeueMessage("channel2");
-}, 150);
+}, 100);
 setInterval(() => {
   client.dequeueMessage("Aaren");
-}, 100);
+}, 1000);
 
 // setInterval(() => {
 //   client.dequeueMessage("channel1");

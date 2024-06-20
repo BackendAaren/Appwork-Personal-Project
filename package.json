@@ -23,5 +23,13 @@
     "path": "^0.12.7",
     "uuid": "^10.0.0",
     "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.5.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "globals": "^15.6.0"
   }
 }

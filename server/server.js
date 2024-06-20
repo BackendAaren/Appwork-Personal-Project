@@ -1,5 +1,5 @@
 import http from "http";
-import WebSocket, { WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
 import osUtils from "node-os-utils";
 import path from "path";
 import { fileURLToPath } from "url"; // 引入 fileURLToPath
