@@ -101,12 +101,12 @@ const client = new MessageQueueClient("localhost", 3001);
 //     payload: `Message:${Math.random() + 10}`,
 //   });
 // }, 100);
-// setInterval(() => {
-//   client.enqueueMessage("channel1", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 200);
+setInterval(() => {
+  client.enqueueMessage("channel1", {
+    messageType: "text",
+    payload: `Message:${Math.random() + 10}`,
+  });
+}, 200);
 
 // setInterval(() => {
 //   client.enqueueMessage("channel2", {
@@ -114,15 +114,15 @@ const client = new MessageQueueClient("localhost", 3001);
 //     payload: `Message:${Math.random() + 10}`,
 //   });
 // }, 300);
-setInterval(() => {
-  client.dequeueMessage("channel1");
-}, 100);
-setInterval(() => {
-  client.dequeueMessage("channel2");
-}, 100);
-setInterval(() => {
-  client.dequeueMessage("Aaren");
-}, 1000);
+// setInterval(() => {
+//   client.dequeueMessage("channel1");
+// }, 100);
+// setInterval(() => {
+//   client.dequeueMessage("channel2");
+// }, 100);
+// setInterval(() => {
+//   client.dequeueMessage("Aaren");
+// }, 1000);
 
 // setInterval(() => {
 //   client.dequeueMessage("channel1");

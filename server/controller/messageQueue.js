@@ -150,7 +150,6 @@ export class MessageQueue {
       this.channels[channel] = [];
     }
     this.channels[channel].push(message);
-    console.log(message);
     message.enqueueTime = enqueueTime;
     // console.log(message);
     //Persistent system
@@ -160,8 +159,7 @@ export class MessageQueue {
         .insertOne({ ...message, channel, status: "unprocessed" });
       await this.mongoDB
         .getCollection(`message_index`)
-        .createIndex({ channel: 1 }, { unique: true });
-      await this.mongoDB.getCollection(`message_index`).insertOne({ channel });
+        .updateOne({ channel }, { $set: { channel } }, { upsert: true });
     } else {
       this.mongoDB
         .getCollection(`messages`)
@@ -169,7 +167,7 @@ export class MessageQueue {
         .catch((err) =>
           console.error("Failed to save message to MongoDB", err)
         );
-      await this.mongoDB
+      this.mongoDB
         .getCollection(`message_index`)
         .updateOne({ channel }, { $set: { channel } }, { upsert: true });
     }
