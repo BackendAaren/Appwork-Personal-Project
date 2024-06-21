@@ -10,6 +10,7 @@ export class MessageType {
     this.payload = payload;
     this.messageID = messageID;
     this.enqueueTime = enqueueTime;
+    this.status = "unprocessed";
   }
 }
 
@@ -156,14 +157,14 @@ export class MessageQueue {
     if (isSync) {
       await this.mongoDB
         .getCollection(`messages`)
-        .insertOne({ ...message, channel, status: "unprocessed" });
+        .insertOne({ ...message, channel });
       await this.mongoDB
         .getCollection(`message_index`)
         .updateOne({ channel }, { $set: { channel } }, { upsert: true });
     } else {
       this.mongoDB
         .getCollection(`messages`)
-        .insertOne({ ...message, channel, status: "unprocessed" })
+        .insertOne({ ...message, channel })
         .catch((err) =>
           console.error("Failed to save message to MongoDB", err)
         );
@@ -196,7 +197,7 @@ export class MessageQueue {
     }
   }
 
-  async dequeue(channel) {
+  async dequeue(channel, autoAck = true) {
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
@@ -208,8 +209,11 @@ export class MessageQueue {
       //當channel裡面沒有information時將resolve推入waiting進入等待狀態
       await new Promise((resolve) => this.waiting[channel].push(resolve));
     }
-    const message = this.channels[channel].shift();
+    const message = this.channels[channel][0];
     console.log(message);
+
+    //計算目前陣列長度
+    this.stats.length[channel] = this.channels[channel].length;
 
     //計算throughput
     if (!this.stats.throughput[channel]) {
@@ -239,8 +243,29 @@ export class MessageQueue {
       };
     }
     this.stats.outboundRate[channel].count += 1;
+    console.log(`This is ACK message ${autoAck}`);
+    if (autoAck) {
+      const ackSuccess = await this.ack(channel, message.messageID);
+      console.log(`This is ackmessage ${ackSuccess}`);
+      if (ackSuccess) {
+        this.channels[channel].shift(); //確認成功才將message移除
+      }
+    }
 
     return message;
+  }
+
+  async ack(channel, messageID) {
+    try {
+      await this.mongoDB
+        .getCollection("messages")
+        .updateOne({ messageID, channel }, { $set: { status: "processed" } });
+      console.log(`Message${messageID} acknowledged`);
+      return true;
+    } catch (error) {
+      console.error(`Failed to acknowledge message ${messageID}`, error);
+      return false;
+    }
   }
 
   getStats() {

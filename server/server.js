@@ -67,6 +67,29 @@ app.get("/dequeue/:channel", async (req, res) => {
   }
 });
 
+// Route to acknowledge a message
+app.post("/ack/:channel/:messageID", async (req, res) => {
+  const { channel, messageID } = req.params;
+  try {
+    const success = await messageQueue.ack(channel, messageID);
+    if (success) {
+      res.status(200).send({
+        message: "Message acknowledged successfully",
+        SuccessMessage: `${success}`,
+      });
+    } else {
+      res.status(404).send({
+        message: "Message can't be found",
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to acknowledge message",
+      details: error.message,
+    });
+  }
+});
+
 app.get("/watcher/operationSystemStatus", async (req, res) => {
   const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
     return cpuPercentage;

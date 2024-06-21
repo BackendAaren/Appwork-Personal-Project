@@ -36,10 +36,10 @@ class MessageQueueClient {
   }
 
   // Dequeue a message from a specific channel using async/await
-  async dequeueMessage(channel) {
+  async dequeueMessage(channel, autoAck = true) {
     const options = {
       ...this.options,
-      path: `/dequeue/${channel}`,
+      path: `/dequeue/${channel}?autoAck=${autoAck}`,
       method: "GET",
     };
 
@@ -76,6 +76,27 @@ class MessageQueueClient {
       console.error(`Error: ${error.message}`);
     }
   }
+
+  ackMessage(channel, messageID) {
+    const options = {
+      ...this.options,
+      path: `/ack/${channel}/${messageID}`,
+      method: "POST",
+    };
+
+    const req = http.request(options, (res) => {
+      console.log(`Status Code:${res.statusCode}`);
+      res.setEncoding("utf-8");
+      res.on("data", (data) => {
+        console.log(`Response:${data}`);
+      });
+    });
+
+    req.on("error", (error) => {
+      console.error(`Error:${error.message}`);
+    });
+    req.end();
+  }
 }
 
 // 使用示例
@@ -95,18 +116,28 @@ const client = new MessageQueueClient("localhost", 3001);
 //   });
 // }
 
-// setInterval(() => {
+// setInterval(async () => {
 //   client.enqueueMessage("Aaren", {
 //     messageType: "text",
 //     payload: `Message:${Math.random() + 10}`,
 //   });
-// }, 100);
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 200);
+// }, 1);
+setInterval(async () => {
+  const message = await client.dequeueMessage("Aaren", true);
+  console.log(`This is dequeue: ${message}`);
+
+  if (message) {
+    const parsedMessage = JSON.parse(message);
+    console.log(`This is dequeue message : ${parsedMessage.messageID}`);
+    client.ackMessage("Aaren", parsedMessage.messageID);
+  }
+}, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel1", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 200);
 
 // setInterval(() => {
 //   client.enqueueMessage("channel2", {
@@ -120,9 +151,10 @@ setInterval(() => {
 // setInterval(() => {
 //   client.dequeueMessage("channel2");
 // }, 100);
-// setInterval(() => {
-//   client.dequeueMessage("Aaren");
-// }, 1000);
+// setInterval(async () => {
+//   const message = await client.dequeueMessage("Aaren");
+//   console.log(`This is dequeue ${message}`);
+// }, 10);
 
 // setInterval(() => {
 //   client.dequeueMessage("channel1");
