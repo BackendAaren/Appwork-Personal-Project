@@ -4,13 +4,21 @@ import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
 import { channel } from "diagnostics_channel";
 export class MessageType {
-  constructor(channel, messageType, payload, messageID, enqueueTime) {
+  constructor(
+    channel,
+    messageType,
+    payload,
+    messageID,
+    enqueueTime,
+    requeueCount = 0
+  ) {
     this.channel = channel;
     this.messageType = messageType;
     this.payload = payload;
     this.messageID = messageID;
     this.enqueueTime = enqueueTime;
     this.status = "unprocessed";
+    this.requeueCount = requeueCount;
   }
 }
 
@@ -21,6 +29,7 @@ export class MessageQueue {
     this.monitorClients = new Set();
     this.dbUrl = "mongodb://localhost:27017";
     this.dbName = "RabbitMQ_storage";
+    this.maxRequeueAttempt = 5;
 
     this.stats = {
       length: {},
@@ -72,7 +81,8 @@ export class MessageQueue {
                 msg.messageType,
                 msg.payload,
                 msg.messageID,
-                now
+                now,
+                msg.requeueCount
               )
           );
 
@@ -144,14 +154,16 @@ export class MessageQueue {
     });
   }
 
-  async enqueue(channel, message, isSync = true) {
+  async enqueue(channel, message, isSync = false) {
     const enqueueTime = Date.now();
     message.messageID = uuidv4().slice(0, 7);
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
-    this.channels[channel].push(message);
     message.enqueueTime = enqueueTime;
+    console.log(message);
+    this.channels[channel].push(message);
+
     // console.log(message);
     //Persistent system
     if (isSync) {
@@ -197,7 +209,7 @@ export class MessageQueue {
     }
   }
 
-  async dequeue(channel, autoAck = true) {
+  async dequeue(channel, autoAck = false) {
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
@@ -249,9 +261,10 @@ export class MessageQueue {
       console.log(`This is ackmessage ${ackSuccess}`);
       if (ackSuccess) {
         this.channels[channel].shift(); //確認成功才將message移除
+      } else {
+        this.requeue(channel, message.messageID); //否則就requeue並重新排隊
       }
     }
-
     return message;
   }
 
@@ -264,6 +277,55 @@ export class MessageQueue {
       return true;
     } catch (error) {
       console.error(`Failed to acknowledge message ${messageID}`, error);
+      return false;
+    }
+  }
+
+  async requeue(channel, messageID) {
+    try {
+      const messageIndex = this.channels[channel].findIndex(
+        (msg) => msg.messageID === messageID
+      );
+      if (messageIndex === -1) {
+        console.error(`Message ${messageID} not found in channel${channel}`);
+        return false;
+      }
+      const message = this.channels[channel][messageIndex];
+      message.requeueCount += 1;
+      if (message.requeueCount > this.maxRequeueAttempt) {
+        console.log(
+          `Message ${messageID} discard after exceeding max requeue attempt`
+        );
+        await this.mongoDB
+          .getCollection("messages")
+          .updateOne({ messageID, channel }, { $set: { status: "discard" } });
+        this.channels[channel].splice(messageIndex, 1);
+      } else {
+        await this.mongoDB.getCollection("messages").updateOne(
+          { messageID, channel },
+          {
+            $set: {
+              status: "unprocessed",
+              requeueCount: message.requeueCount,
+            },
+          }
+        );
+        this.channels[channel].splice(messageIndex, 1); // 移除原本位置的訊息
+        this.channels[channel].push(message);
+      }
+
+      //更新message queue長度統計
+      this.stats.length[channel] = this.channels[channel].length;
+
+      //若有等待的consumer立即解鎖他
+      if (this.waiting[channel] && this.waiting[channel].length > 0) {
+        const resolveNext = this.waiting[channel].shift();
+        resolveNext();
+      }
+      console.log(`Message ${messageID} requeue successfully `);
+      return true;
+    } catch (error) {
+      console.error(`Failed to requeue message ${messageID} :`, error);
       return false;
     }
   }
