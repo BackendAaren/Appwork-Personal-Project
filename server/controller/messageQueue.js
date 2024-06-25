@@ -8,6 +8,7 @@ export class MessageType {
     channel,
     messageType,
     payload,
+    node,
     messageID,
     enqueueTime,
     requeueCount = 0
@@ -19,6 +20,7 @@ export class MessageType {
     this.enqueueTime = enqueueTime;
     this.status = "unprocessed";
     this.requeueCount = requeueCount;
+    this.node = node;
   }
 }
 
@@ -43,8 +45,8 @@ export class MessageQueue {
     };
     // 定義計算進入和出站速率的計時器
     setInterval(() => {
-      this.calculateInboundRates();
-      this.calculateOutboundRates();
+      // this.calculateInboundRates();
+      // this.calculateOutboundRates();
       this.broadcastMonitorStatus();
     }, 1000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
