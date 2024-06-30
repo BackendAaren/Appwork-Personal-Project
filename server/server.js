@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3004;
+const PORT = 3002;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -29,8 +29,13 @@ const nodes = [
   "http://localhost:3003",
   "http://localhost:3004",
 ];
-const replicationFactor = 2;
-let nodeManager = new NodeManager(nodes, replicationFactor);
+const backupNodes = [
+  "http://localhost:3005",
+  "http://localhost:3006",
+  "http://localhost:3007",
+];
+const replicationFactor = 3;
+let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor);
 // wss.on("connection", (ws) => {
 //   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 // });
@@ -50,9 +55,9 @@ app.post("/enqueue/:channel", async (req, res) => {
 
     const node = nodeManager.getNodeForKey(channel);
     const message = new MessageType(channel, messageType, payload, node);
-    console.log(
-      `This work node from now ${channel} and ${node} message is ${message}`
-    );
+    // console.log(
+    //   `This work node from now ${channel} and ${node} message is ${message}`
+    // );
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
     if (node === `http://localhost:${PORT}`) {
@@ -61,12 +66,7 @@ app.post("/enqueue/:channel", async (req, res) => {
       const targetURL = `${node}/enqueue/${channel}`;
       await axios.post(targetURL, { messageType, payload });
     }
-    // if (node !== `http://localhost:${PORT}`) {
-    //   const targetNodes = nodeManager.getAvailableNodes(channel);
-    //   for (const targetNode of targetNodes) {
-    //     nodeManager.replicateMessage(targetNode, channel, message);
-    //   }
-    // }
+
     res.status(200).json({ message: "Message enqueue successfully" });
   } catch (error) {
     console.error("Enqueue error:", error);
@@ -79,16 +79,20 @@ app.get("/dequeue/:channel", async (req, res) => {
   const { channel } = req.params;
   const node = nodeManager.getNodeForKey(channel);
 
-  if (!messageQueues[node]) {
-    return res.status(404).json({ error: "Channel can not found" });
+  if (!node || !messageQueues[node]) {
+    return res.status(404).json({ error: "Channel or node not found" });
   }
 
-  messageQueues[node]
-    .dequeue(channel)
-    .then((message) => res.status(200).json(message))
-    .catch((error) => {
-      res.status(500).json({ error: "Internal server error", details: error });
-    });
+  try {
+    const message = await messageQueues[node].dequeue(channel);
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Dequeue error:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
+
   console.log(messageQueues[node].getStats());
 });
 
@@ -118,7 +122,13 @@ app.post("/ack/:channel/:messageID", async (req, res) => {
 });
 
 app.get(`/health`, (req, res) => {
-  res.status(200).send("OK");
+  const currentAliveNodes = nodeManager.getCurrentAliveNodes(); // 確保這裡是調用函數
+  res.status(200).json({ currentAliveNodes: currentAliveNodes }); // 使用 .json() 方法
+});
+
+app.get(`/status`, (req, res) => {
+  const primaryNodeStatus = nodeManager.getPrimaryNodes(); // 確保這裡是調用函數
+  res.status(200).json({ primaryNodes: primaryNodeStatus }); // 使用 .json() 方法
 });
 
 app.get("/watcher/operationSystemStatus", async (req, res) => {
