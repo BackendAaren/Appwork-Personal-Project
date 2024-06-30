@@ -8,10 +8,11 @@ export class MessageType {
     channel,
     messageType,
     payload,
-    node,
     messageID,
     enqueueTime,
-    requeueCount = 0
+    status,
+    requeueCount = 0,
+    node
   ) {
     this.channel = channel;
     this.messageType = messageType;
@@ -84,7 +85,9 @@ export class MessageQueue {
                 msg.payload,
                 msg.messageID,
                 now,
-                msg.requeueCount
+                msg.status,
+                msg.requeueCount,
+                msg.node
               )
           );
 
@@ -211,7 +214,7 @@ export class MessageQueue {
     }
   }
 
-  async dequeue(channel, autoAck = false) {
+  async dequeue(channel, autoAck = true) {
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }

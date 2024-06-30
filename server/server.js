@@ -79,13 +79,16 @@ app.get("/dequeue/:channel", async (req, res) => {
   const { channel } = req.params;
   const node = nodeManager.getNodeForKey(channel);
 
-  if (!node || !messageQueues[node]) {
-    return res.status(404).json({ error: "Channel or node not found" });
-  }
-
   try {
-    const message = await messageQueues[node].dequeue(channel);
-    res.status(200).json(message);
+    if (node === `http://localhost:${PORT}`) {
+      console.log(`Hiiiiiiiiiiiiiiiiiiiiii!!!!!!!!!!!!!!!!!!`);
+      const message = await messageQueue.dequeue(channel);
+      res.status(200).json(message);
+    } else {
+      const targetURL = `${node}/dequeue/${channel}`;
+      const response = await axios.get(targetURL);
+      res.status(response.status).json(response.data);
+    }
   } catch (error) {
     console.error("Dequeue error:", error);
     res
@@ -93,32 +96,30 @@ app.get("/dequeue/:channel", async (req, res) => {
       .json({ error: "Internal server error", details: error.message });
   }
 
-  console.log(messageQueues[node].getStats());
+  console.log(messageQueue.getStats());
 });
 
 // Route to acknowledge a message
 app.post("/ack/:channel/:messageID", async (req, res) => {
   const { channel, messageID } = req.params;
-  const node = nodeManager.getNodeForKey(channel);
-
-  if (!messageQueues[node]) {
-    messageQueues[node] = new messageQueue();
+  try {
+    const success = await messageQueue.ack(channel, messageID);
+    if (success) {
+      res.status(200).send({
+        message: "Message acknowledged successfully",
+        SuccessMessage: `${success}`,
+      });
+    } else {
+      res.status(404).send({
+        message: "Message can't be found",
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to acknowledge message",
+      details: error.message,
+    });
   }
-
-  messageQueues[node]
-    .ack(channel, messageID)
-    .then((success) => {
-      if (success) {
-        res
-          .status(200)
-          .json({ message: `${messageID} acknowledged successfully` });
-      } else {
-        res.status(404).json({ error: `${messageID} not found` });
-      }
-    })
-    .catch((error) =>
-      res.status(500).json({ error: `Internal server error`, details: error })
-    );
 });
 
 app.get(`/health`, (req, res) => {

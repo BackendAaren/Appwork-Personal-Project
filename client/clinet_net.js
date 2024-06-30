@@ -144,14 +144,14 @@ if (dequeue) {
     isProcessing = false;
   }, 1200);
 }
-function enqueueMessages(channel, count) {
-  for (let i = 0; i < count; i++) {
-    client.enqueueMessage(channel, {
-      messageType: "text",
-      payload: `Message${i + 10}`,
-    });
-  }
-}
+// function enqueueMessages(channel, count) {
+//   for (let i = 0; i < count; i++) {
+//     client.enqueueMessage(channel, {
+//       messageType: "text",
+//       payload: `Message${i + 10}`,
+//     });
+//   }
+// }
 
 // // 向各個頻道分別發送三條消息
 // enqueueMessages("channel1", 3);
