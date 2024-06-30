@@ -102,56 +102,98 @@ class MessageQueueClient {
 // 使用示例
 const client = new MessageQueueClient("localhost", 3002);
 
-let dequeue = true;
+// let dequeue = true;
 
-if (!dequeue) {
-  for (let i = 0; i < 3; i++) {
-    client.enqueueMessage("channel2", {
-      messageType: "text",
-      payload: `Message${i + 10}`,
-    });
-  }
-}
-
-if (dequeue) {
-  let isProcessing = false;
-  setInterval(async () => {
-    if (isProcessing) {
-      return;
-    }
-    isProcessing = true;
-
-    try {
-      const message = await client.dequeueMessage("channel1", true);
-      console.log(`This is dequeue: ${message}`);
-
-      if (message) {
-        const parsedMessage = JSON.parse(message);
-
-        // 模擬特定訊息處理出錯的情況
-        if (parsedMessage.messageID === "db787b1") {
-          throw new Error("Processing error for special message.");
-        }
-      } else {
-        console.log(`Processing message: ${parsedMessage.messageID}`);
-        await client.ackMessage("channel1", parsedMessage.messageID);
-      }
-    } catch (error) {
-      console.error(`Error processing message: ${error.message}`);
-      // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
-    }
-
-    isProcessing = false;
-  }, 1200);
-}
-// function enqueueMessages(channel, count) {
-//   for (let i = 0; i < count; i++) {
-//     client.enqueueMessage(channel, {
+// if (!dequeue) {
+//   for (let i = 0; i < 3; i++) {
+//     client.enqueueMessage("channel2", {
 //       messageType: "text",
 //       payload: `Message${i + 10}`,
 //     });
 //   }
 // }
+
+let isProcessing = false;
+setInterval(async () => {
+  if (isProcessing) {
+    return;
+  }
+  isProcessing = true;
+
+  try {
+    const message = await client.dequeueMessage("channel1", true);
+    console.log(`This is dequeue: ${message}`);
+
+    const parsedMessage = JSON.parse(message);
+
+    // 模擬特定訊息處理出錯的情況
+
+    console.log(`Processing message: ${parsedMessage.messageID}`);
+    await client.ackMessage("channel1", parsedMessage.messageID);
+  } catch (error) {
+    console.error(`Error processing message: ${error.message}`);
+    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+  }
+
+  isProcessing = false;
+}, 1200);
+let isProcessing2 = false;
+setInterval(async () => {
+  if (isProcessing2) {
+    return;
+  }
+  isProcessing = true;
+
+  try {
+    const message = await client.dequeueMessage("channel2", true);
+    console.log(`This is dequeue: ${message}`);
+
+    const parsedMessage = JSON.parse(message);
+
+    // 模擬特定訊息處理出錯的情況
+
+    console.log(`Processing message: ${parsedMessage.messageID}`);
+    await client.ackMessage("channel1", parsedMessage.messageID);
+  } catch (error) {
+    console.error(`Error processing message: ${error.message}`);
+    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+  }
+
+  isProcessing2 = false;
+}, 1200);
+let isProcessing3 = false;
+setInterval(async () => {
+  if (isProcessing3) {
+    return;
+  }
+  isProcessing = true;
+
+  try {
+    const message = await client.dequeueMessage("channel3", true);
+    console.log(`This is dequeue: ${message}`);
+
+    const parsedMessage = JSON.parse(message);
+
+    // 模擬特定訊息處理出錯的情況
+
+    console.log(`Processing message: ${parsedMessage.messageID}`);
+    await client.ackMessage("channel1", parsedMessage.messageID);
+  } catch (error) {
+    console.error(`Error processing message: ${error.message}`);
+    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+  }
+
+  isProcessing3 = false;
+}, 1200);
+
+function enqueueMessages(channel, count) {
+  for (let i = 0; i < count; i++) {
+    client.enqueueMessage(channel, {
+      messageType: "text",
+      payload: `Message${i + 10}`,
+    });
+  }
+}
 
 // // 向各個頻道分別發送三條消息
 // enqueueMessages("channel1", 3);

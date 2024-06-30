@@ -8,11 +8,11 @@ export class MessageType {
     channel,
     messageType,
     payload,
+    node,
     messageID,
     enqueueTime,
     status,
-    requeueCount = 0,
-    node
+    requeueCount = 0
   ) {
     this.channel = channel;
     this.messageType = messageType;
@@ -83,11 +83,11 @@ export class MessageQueue {
                 msg.channel,
                 msg.messageType,
                 msg.payload,
+                msg.node,
                 msg.messageID,
                 now,
                 msg.status,
-                msg.requeueCount,
-                msg.node
+                msg.requeueCount
               )
           );
 
