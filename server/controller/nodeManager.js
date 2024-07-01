@@ -105,8 +105,6 @@ export class NodeManager {
 
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
-        // this.redistributeWork(nodesWentDown, `down`);
-        // this.nodes = this.nodes.filter((node) => !nodesWentDown.includes(node));
       }
 
       // console.log(`這是this.aliveNodes${this.aliveNodes}`);
@@ -124,71 +122,91 @@ export class NodeManager {
   }
 
   promoteBackupNodes(downNodes) {
+    // console.log(`這是downNodes:${downNodes}`);
     for (const node of downNodes) {
+      // console.log(`這是Node:${node}`);
       const backupNode = this.primaryToBackupMap.get(node);
-      // console.log(`這是backup ${downNodes}`);
+      // console.log(`這是backup ${backupNode}`);
       // console.log(`這是backuppppp ${backupNode}`);
       if (backupNode && !this.nodes.includes(backupNode)) {
+        //這一行邏輯怪怪的
         if (this.aliveNodes.has(backupNode)) {
           const index = this.nodes.indexOf(node);
           console.log(`這是所有死掉的節點Node:${downNodes}`);
+          console.log(`這是死掉前的this.nodes${this.nodes}`);
           console.log(`這是死掉的主節點Node:${node}`);
           console.log(`這是死掉的備用節點Node:${backupNode}`);
           console.log(`這是節點Index:${index}`);
-          this.nodes.push(backupNode);
-
-          // this.nodes.splice(index, 0, backupNode);
+          // this.nodes.push(backupNode);
+          console.log(`這是重生的this.nodes${this.nodes}`);
+          this.nodes.splice(index, 0, backupNode);
         }
 
         // this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
-        // console.log(`Promoted backup node ${backupNode} to primary`);
-        this.primaryNodesSet.delete(node); // 更新主節點集合
-        this.primaryNodesSet.add(backupNode);
       }
-      // this.primaryToBackupMap.set(backupNode, node);
-      this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
     }
+    // console.log(`這是Promote的backupNodes:${backupNode}`);
+    // console.log(`這是Promote的nodes:${node}`);
+    console.log(`這是Promote的this.nodes:${this.nodes}`);
+    this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
   }
   async restoreBackupNodes(cameUpNodes) {
     try {
-      console.log(`這是CameUpNodes${[...cameUpNodes]}`);
-      for (const node of cameUpNodes) {
-        console.log(`這是NodeURL: ${node}`);
-        // 同步最新的主節點信息
-        const primaryNodeUrl = this.primaryToBackupMap.get(node); // 假設第一個主節點URL
+      console.log(`這是CameUpNodes${cameUpNodes}`);
 
-        console.log(`這是PrimaryNodeURL: ${primaryNodeUrl}`);
+      // 同步最新的主節點信息
+      const primaryNodeUrl = this.primaryToBackupMap.get(cameUpNodes); // 假設第一個主節點URL
 
-        try {
-          const response = await axios.get(`${primaryNodeUrl}/status`);
+      console.log(`這是PrimaryNodeURL: ${primaryNodeUrl}`);
 
-          if (response) {
-            const { primaryNodes } = response.data;
-            console.log(primaryNodes);
-            this.nodes = primaryNodes;
-            console.log(`Fetched primary nodes from ${primaryNodeUrl}`);
-          } else {
-            console.log(`${primaryNodeUrl} is not alive`);
+      try {
+        const response = await axios.get(`${primaryNodeUrl}/status`);
+
+        if (response) {
+          const { primaryNodes } = response.data;
+          console.log(primaryNodes);
+          this.nodes = primaryNodes;
+          console.log(`Fetched primary nodes from ${primaryNodeUrl}`);
+        } else {
+          console.log(`${primaryNodeUrl} is not alive`);
+        }
+
+        const primaryNode = this.primaryToBackupMap.get(cameUpNodes);
+        if (this.nodes.includes(primaryNode)) {
+          // 如果主節點仍在運行，將恢復的節點重新設置為從節點
+          this.backupNodes.push(cameUpNodes);
+          console.log(
+            `Node ${cameUpNodes} restored as a backup for ${primaryNode}`
+          );
+        } else {
+          // 如果主節點不在運行，將恢復的節點設置為主節點
+          this.nodes.push(cameUpNodes);
+          console.log(`Node ${cameUpNodes} promoted to primary`);
+        }
+      } catch (error) {
+        console.error(`Error fetching primary nodes from ${primaryNodeUrl}:`);
+        for (const node of this.allNodes) {
+          if (node !== cameUpNodes) {
+            const response = await axios.get(`${node}/status`);
+            if (response) {
+              const { primaryNodes } = response.data;
+              console.log(primaryNodes);
+              this.nodes = primaryNodes;
+              console.log(`這是重新fetch檔案後的this.nodes:${this.nodes}`);
+              console.log(`success to update this.nodes from ${node}`);
+              if (!this.nodes.includes(cameUpNodes)) {
+                this.nodes.push(cameUpNodes);
+                console.log(`Node ${cameUpNodes} promoted to primary`);
+              }
+            }
           }
-
-          const primaryNode = this.primaryToBackupMap.get(node);
-          if (this.nodes.includes(primaryNode)) {
-            // 如果主節點仍在運行，將恢復的節點重新設置為從節點
-            this.backupNodes.push(node);
-            console.log(`Node ${node} restored as a backup for ${primaryNode}`);
-          } else {
-            // 如果主節點不在運行，將恢復的節點設置為主節點
-            this.nodes.push(node);
-            console.log(`Node ${node} promoted to primary`);
-          }
-        } catch (error) {
-          console.error(`Error fetching primary nodes from ${primaryNodeUrl}:`);
         }
       }
 
       // 確保 this.nodes 更新到最新狀態
       this.nodes = Array.from(new Set(this.nodes));
+
       console.log("Final primary nodes list:", this.nodes);
     } catch (error) {
       console.error("Error in restoreBackupNodes:");
@@ -210,16 +228,18 @@ export class NodeManager {
         }
       } else {
         try {
-          this.restoreBackupNodes([node]);
+          this.restoreBackupNodes(node);
           console.log(`Update ${node} node information to the most newest `);
-        } catch {}
+        } catch (error) {
+          console.error(`Failed to restore backup node:${node}`, error);
+        }
       }
     }
   }
   //Receive CameUp node information to restore the node
   async receiveNodeCameUpNotification(cameUpNode) {
     console.log(`Receive notification that node ${cameUpNode} came up`);
-    this.restoreBackupNodes([cameUpNode]);
+    this.restoreBackupNodes(cameUpNode);
   }
 
   getPrimaryNodes() {
