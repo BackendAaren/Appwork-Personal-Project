@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3002;
+const PORT = 3003;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -35,7 +35,12 @@ const backupNodes = [
   "http://localhost:3007",
 ];
 const replicationFactor = 3;
-let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor);
+let nodeManager = new NodeManager(
+  nodes,
+  backupNodes,
+  replicationFactor,
+  `http://localhost:${PORT}`
+);
 // wss.on("connection", (ws) => {
 //   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 // });
@@ -81,7 +86,6 @@ app.get("/dequeue/:channel", async (req, res) => {
 
   try {
     if (node === `http://localhost:${PORT}`) {
-      console.log(`Hiiiiiiiiiiiiiiiiiiiiii!!!!!!!!!!!!!!!!!!`);
       const message = await messageQueue.dequeue(channel);
       res.status(200).json(message);
     } else {
@@ -132,6 +136,12 @@ app.get(`/status`, (req, res) => {
   res.status(200).json({ primaryNodes: primaryNodeStatus }); // 使用 .json() 方法
 });
 
+app.post(`/nodeCameUp`, (req, res) => {
+  const { node } = req.body;
+  nodeManager.receiveNodeCameUpNotification(node);
+  res.send(200);
+});
+
 app.get("/watcher/operationSystemStatus", async (req, res) => {
   const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
     return cpuPercentage;
@@ -153,10 +163,8 @@ app.get("/watcher.html", (req, res) => {
 
 // Create HTTP server and attach express app to it
 const server = http.createServer(app);
-
 // Create WebSocket server and attach it to the HTTP server
 const wss = new WebSocketServer({ server });
-
 // Listen for WebSocket connections
 wss.on("connection", (ws) => {
   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理

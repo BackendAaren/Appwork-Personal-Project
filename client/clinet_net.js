@@ -102,17 +102,6 @@ class MessageQueueClient {
 // 使用示例
 const client = new MessageQueueClient("localhost", 3002);
 
-// let dequeue = true;
-
-// if (!dequeue) {
-//   for (let i = 0; i < 3; i++) {
-//     client.enqueueMessage("channel2", {
-//       messageType: "text",
-//       payload: `Message${i + 10}`,
-//     });
-//   }
-// }
-
 let isProcessing = false;
 setInterval(async () => {
   if (isProcessing) {
@@ -186,14 +175,14 @@ setInterval(async () => {
   isProcessing3 = false;
 }, 1200);
 
-function enqueueMessages(channel, count) {
-  for (let i = 0; i < count; i++) {
-    client.enqueueMessage(channel, {
-      messageType: "text",
-      payload: `Message${i + 10}`,
-    });
-  }
-}
+// function enqueueMessages(channel, count) {
+//   for (let i = 0; i < count; i++) {
+//     client.enqueueMessage(channel, {
+//       messageType: "text",
+//       payload: `Message${i + 10}`,
+//     });
+//   }
+// }
 
 // // 向各個頻道分別發送三條消息
 // enqueueMessages("channel1", 3);
