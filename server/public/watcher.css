@@ -1,0 +1,11 @@
+.stats-container {
+    margin-bottom: 20px;
+  }
+  
+  .stats-container div {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+  }
+  

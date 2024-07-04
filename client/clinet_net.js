@@ -102,12 +102,36 @@ class MessageQueueClient {
 // 使用示例
 const client = new MessageQueueClient("localhost", 3002);
 
-let isProcessing = false;
+// let isProcessing = false;
+// setInterval(async () => {
+//   if (isProcessing) {
+//     return;
+//   }
+//   isProcessing = true;
+
+//   try {
+//     const message = await client.dequeueMessage("channel1", true);
+//     console.log(`This is dequeue: ${message}`);
+
+//     const parsedMessage = JSON.parse(message);
+
+//     // 模擬特定訊息處理出錯的情況
+
+//     console.log(`Processing message: ${parsedMessage.messageID}`);
+//     await client.ackMessage("channel1", parsedMessage.messageID);
+//   } catch (error) {
+//     console.error(`Error processing message: ${error.message}`);
+//     // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+//   }
+
+//   isProcessing = false;
+// }, 5000);
+let isProcessing2 = false;
 setInterval(async () => {
-  if (isProcessing) {
+  if (isProcessing2) {
     return;
   }
-  isProcessing = true;
+  isProcessing2 = true;
 
   try {
     const message = await client.dequeueMessage("channel1", true);
@@ -124,38 +148,14 @@ setInterval(async () => {
     // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
   }
 
-  isProcessing = false;
-}, 1200);
-let isProcessing2 = false;
-setInterval(async () => {
-  if (isProcessing2) {
-    return;
-  }
-  isProcessing = true;
-
-  try {
-    const message = await client.dequeueMessage("channel2", true);
-    console.log(`This is dequeue: ${message}`);
-
-    const parsedMessage = JSON.parse(message);
-
-    // 模擬特定訊息處理出錯的情況
-
-    console.log(`Processing message: ${parsedMessage.messageID}`);
-    await client.ackMessage("channel1", parsedMessage.messageID);
-  } catch (error) {
-    console.error(`Error processing message: ${error.message}`);
-    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
-  }
-
   isProcessing2 = false;
-}, 1200);
+}, 600);
 let isProcessing3 = false;
 setInterval(async () => {
   if (isProcessing3) {
     return;
   }
-  isProcessing = true;
+  isProcessing3 = true;
 
   try {
     const message = await client.dequeueMessage("channel3", true);
@@ -173,7 +173,7 @@ setInterval(async () => {
   }
 
   isProcessing3 = false;
-}, 1200);
+}, 600);
 
 // function enqueueMessages(channel, count) {
 //   for (let i = 0; i < count; i++) {
@@ -188,26 +188,26 @@ setInterval(async () => {
 // enqueueMessages("channel1", 3);
 // enqueueMessages("channel2", 3);
 // enqueueMessages("channel3", 3);
-// enqueueMessages("channel4", 3);
+// // enqueueMessages("channel4", 3);
 
 // setInterval(() => {
 //   client.enqueueMessage("channel1", {
 //     messageType: "text",
 //     payload: `Message:${Math.random() + 10}`,
 //   });
-// }, 1000);
-// setInterval(() => {
-//   client.enqueueMessage("channel2", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 1000);
+// }, 400);
+// // // setInterval(() => {
+// // //   client.enqueueMessage("channel2", {
+// // //     messageType: "text",
+// // //     payload: `Message:${Math.random() + 10}`,
+// // //   });
+// // // }, 400);
 // setInterval(() => {
 //   client.enqueueMessage("channel3", {
 //     messageType: "text",
 //     payload: `Message:${Math.random() + 10}`,
 //   });
-// }, 1000);
+// }, 400);
 // setInterval(() => {
 //   client.enqueueMessage("channel4", {
 //     messageType: "text",

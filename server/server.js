@@ -44,7 +44,7 @@ let nodeManager = new NodeManager(
 // wss.on("connection", (ws) => {
 //   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 // });
-const messageQueue = new MessageQueue();
+const messageQueue = new MessageQueue(`http://localhost:${PORT}`);
 const messageQueues = {};
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
@@ -83,6 +83,7 @@ app.post("/enqueue/:channel", async (req, res) => {
 app.get("/dequeue/:channel", async (req, res) => {
   const { channel } = req.params;
   const node = nodeManager.getNodeForKey(channel);
+  console.log(`這是server Side 的連接node: ${node}`);
 
   try {
     if (node === `http://localhost:${PORT}`) {

@@ -26,13 +26,14 @@ export class MessageType {
 }
 
 export class MessageQueue {
-  constructor() {
+  constructor(port) {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
     this.dbUrl = "mongodb://localhost:27017";
     this.dbName = "RabbitMQ_storage";
     this.maxRequeueAttempt = 5;
+    this.port = port;
 
     this.stats = {
       length: {},
@@ -43,12 +44,14 @@ export class MessageQueue {
       now_executing: {},
       inboundRate: {},
       outboundRate: {},
+      source: this.port,
     };
     // 定義計算進入和出站速率的計時器
     setInterval(() => {
       // this.calculateInboundRates();
       // this.calculateOutboundRates();
       this.broadcastMonitorStatus();
+      this.sendStatsToWatcher();
     }, 1000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
@@ -57,6 +60,25 @@ export class MessageQueue {
       await this.mongoDB.close();
       process.exit();
     });
+    this.wsClient = new WebSocket("ws://localhost:3008", {
+      headers: { source: this.port },
+    });
+    this.wsClient.on("open", () => {
+      console.log("Connected to Watcher server");
+    });
+
+    this.wsClient.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+  }
+
+  sendStatsToWatcher() {
+    if (this.wsClient.readyState === WebSocket.OPEN) {
+      const stats = this.getStats();
+      this.wsClient.send(JSON.stringify(stats));
+    } else {
+      console.error("WebSocket connection is not open");
+    }
   }
 
   async recoverMessagesFromMongoDB() {

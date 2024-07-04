@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Monitor</title>
+  <link rel="stylesheet" href="watcher.css">
+</head>
+<body>
+  <h1>Monitor</h1>
+  <div id="monitor"></div>
+
+  <script>
+    // Function to create WebSocket and handle messages
+    function createWebSocket() {
+      const ws = new WebSocket('ws://localhost:3008');
+      
+      ws.onopen = function() {
+        console.log('WebSocket connection opened');
+      };
+
+      ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log(data);
+
+        const source = data.source || 'default-source';
+        let element = document.getElementById(source);
+
+        if (!element) {
+          // Create a new container for the new source
+          const container = document.createElement('div');
+          container.classList.add('stats-container');
+          container.innerHTML = `<h2>${source}</h2><div id="${source}"></div>`;
+          document.getElementById('monitor').appendChild(container);
+          element = document.getElementById(source);
+        }
+
+        // Clear the existing content and add updated data
+        element.innerHTML = `
+          <strong>Length:</strong> ${JSON.stringify(data.length)}<br>
+          <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
+          <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
+          <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
+          <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
+          <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
+          <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
+          <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
+        `;
+      };
+
+      ws.onclose = function() {
+        console.log('WebSocket connection closed');
+      };
+
+      return ws;
+    }
+
+    // Create a single WebSocket connection
+    createWebSocket();
+  </script>
+</body>
+</html>
