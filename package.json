@@ -12,6 +12,7 @@
   "dependencies": {
     "amqplib": "^0.10.4",
     "axios": "^1.7.2",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "cheerio": "^1.0.0-rc.12",
     "cond": "^0.0.8",
     "crc": "^4.3.2",

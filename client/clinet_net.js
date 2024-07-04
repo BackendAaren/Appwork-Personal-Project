@@ -195,7 +195,7 @@ setInterval(async () => {
 //     messageType: "text",
 //     payload: `Message:${Math.random() + 10}`,
 //   });
-// }, 400);
+// }, 100);
 // // // setInterval(() => {
 // // //   client.enqueueMessage("channel2", {
 // // //     messageType: "text",
@@ -207,7 +207,7 @@ setInterval(async () => {
 //     messageType: "text",
 //     payload: `Message:${Math.random() + 10}`,
 //   });
-// }, 400);
+// }, 100);
 // setInterval(() => {
 //   client.enqueueMessage("channel4", {
 //     messageType: "text",

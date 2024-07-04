@@ -4,18 +4,76 @@
   <meta charset="UTF-8">
   <title>Monitor</title>
   <link rel="stylesheet" href="watcher.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
+  <style>
+    #myChart {
+      width: 300px;
+      height: 200px;
+    }
+
+    .chart-container {
+      width: 300px;
+      height: 200px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Monitor</h1>
+  <h1>LionMQ</h1>
   <div id="monitor"></div>
 
   <script>
+    const charts = {}; // 用來存儲每個來源的圖表
+
+    // Function to create a chart
+    function createChart(ctx) {
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [], // 時間標籤
+          datasets: [{
+            label: 'Throughput',
+            data: [], // 圖表數據
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'second'
+              },
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Throughput' // 設定 y 軸標題為 'Throughput'
+              }
+            }
+          }
+        }
+      });
+    }
+
     // Function to create WebSocket and handle messages
     function createWebSocket() {
       const ws = new WebSocket('ws://localhost:3008');
-      
+
       ws.onopen = function() {
         console.log('WebSocket connection opened');
+      };
+
+      ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
       };
 
       ws.onmessage = function(event) {
@@ -29,12 +87,22 @@
           // Create a new container for the new source
           const container = document.createElement('div');
           container.classList.add('stats-container');
-          container.innerHTML = `<h2>${source}</h2><div id="${source}"></div>`;
+          container.innerHTML = `
+            <h2>${source}</h2>
+            <div id="${source}"></div>
+            <div class="chart-container">
+              <canvas id="${source}-chart"></canvas>
+            </div>
+          `;
           document.getElementById('monitor').appendChild(container);
           element = document.getElementById(source);
+
+          // Create new chart for the new source
+          const canvas = document.getElementById(`${source}-chart`).getContext('2d');
+          charts[source] = createChart(canvas);
         }
 
-        // Clear the existing content and add updated data
+        // Update the data on the page
         element.innerHTML = `
           <strong>Length:</strong> ${JSON.stringify(data.length)}<br>
           <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
@@ -45,6 +113,20 @@
           <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
           <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
         `;
+
+        // Update the chart
+        const chart = charts[source];
+        const currentTime = new Date();
+
+        chart.data.labels.push(currentTime);
+        chart.data.datasets[0].data.push(data.delay.channel3); // 更新 throughput 數據
+        
+        if (chart.data.labels.length > 20) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+        }
+
+        chart.update();
       };
 
       ws.onclose = function() {
