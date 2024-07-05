@@ -6,24 +6,13 @@
   <link rel="stylesheet" href="watcher.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
-  <style>
-    #myChart {
-      width: 300px;
-      height: 200px;
-    }
-
-    .chart-container {
-      width: 300px;
-      height: 200px;
-    }
-  </style>
 </head>
 <body>
   <h1>LionMQ</h1>
   <div id="monitor"></div>
 
   <script>
-    const charts = {}; // 用來存儲每個來源的圖表
+    const charts = {}; // 用來存儲每個來源和通道的圖表
 
     // Function to create a chart
     function createChart(ctx) {
@@ -41,6 +30,7 @@
         },
         options: {
           responsive: true,
+          maintainAspectRatio:false,
           scales: {
             x: {
               type: 'time',
@@ -56,7 +46,7 @@
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Throughput' // 設定 y 軸標題為 'Throughput'
+                text: label
               }
             }
           }
@@ -81,52 +71,76 @@
         console.log(data);
 
         const source = data.source || 'default-source';
-        let element = document.getElementById(source);
+        const channels = data.length; // 獲取所有的通道
 
-        if (!element) {
-          // Create a new container for the new source
-          const container = document.createElement('div');
-          container.classList.add('stats-container');
-          container.innerHTML = `
-            <h2>${source}</h2>
-            <div id="${source}"></div>
-            <div class="chart-container">
-              <canvas id="${source}-chart"></canvas>
-            </div>
+        for (const channel in channels) {
+          const elementId = `${source}-${channel}`;
+          let elementThroughput = document.getElementById(elementIdThroughput);
+          let elementDelay =document.getElementById(elementIdDelay)
+
+          if (!element) {
+            // Create a new container for the new source and channel
+            const container = document.createElement('div');
+            container.classList.add('stats-container');
+            container.innerHTML = `
+              <h2>${source} - ${channel}</h2>
+              <div id="${elementIdThroughput}"></div>
+              <div class="chart-container">
+                <canvas id="${elementIdThroughput}-chart"></canvas>
+              </div>
+                   <div id="${elementIdDelay}"></div>
+              <div class="chart-container">
+                <canvas id="${elementIdDelay}-chart"></canvas>
+              </div>
+            `;
+            document.getElementById('monitor').appendChild(container);
+            elementThroughput = document.getElementById(elementIdThroughput);
+            elementDelay = document.getElementById(elementIdDelay);
+
+
+            // Create new chart for the new source and channel
+            const canvasThroughput = document.getElementById(`${elementIdThroughput}-chart`).getContext('2d');
+            const canvasDelay = document.getElementById(`${elementIdDelay}-chart`).getContext('2d');
+            charts[elementIdThroughput] = createChart(canvas,"Throughput");
+            charts[elementIdDelay] = createChart(canvas,"Delay");
+          }
+
+          // Update the data on the page
+          element.innerHTML = `
+            <strong>${channel}:queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
+            <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
+            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
+            <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
+            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
+            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
+            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
+            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
           `;
-          document.getElementById('monitor').appendChild(container);
-          element = document.getElementById(source);
 
-          // Create new chart for the new source
-          const canvas = document.getElementById(`${source}-chart`).getContext('2d');
-          charts[source] = createChart(canvas);
+          // Update the chart
+          const chartThroughput = charts[elementIdThroughput];
+          const chartDelay = charts[elementDelay]
+          const currentTime = new Date();
+
+          //更新Throughput 圖表
+          chartThroughput.data.labels.push(currentTime);
+          chartThroughput.data.datasets[0].data.push(data.length[channel] || 0); // 更新 throughput 數據
+        //更新Throughput 圖表
+        chartDelay.data.labels.push(currentTime);
+          chartDelay.data.datasets[0].data.push(data.delay[channel] || 0); // 更新 throughput 數據
+          
+          if (chartThroughput.data.labels.length > 35) {
+            chartThroughput.data.labels.shift();
+            chartThroughput.data.datasets[0].data.shift();
+          }
+
+          if (chartDelay.data.labels.length > 35) {
+            chartDelay.data.labels.shift();
+            chartDelay.data.datasets[0].data.shift();
+          }
+
+          chartThroughput.update();
         }
-
-        // Update the data on the page
-        element.innerHTML = `
-          <strong>Length:</strong> ${JSON.stringify(data.length)}<br>
-          <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
-          <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
-          <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
-          <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
-          <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
-          <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
-          <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
-        `;
-
-        // Update the chart
-        const chart = charts[source];
-        const currentTime = new Date();
-
-        chart.data.labels.push(currentTime);
-        chart.data.datasets[0].data.push(data.delay.channel3); // 更新 throughput 數據
-        
-        if (chart.data.labels.length > 20) {
-          chart.data.labels.shift();
-          chart.data.datasets[0].data.shift();
-        }
-
-        chart.update();
       };
 
       ws.onclose = function() {

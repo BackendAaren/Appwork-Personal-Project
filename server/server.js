@@ -44,7 +44,7 @@ let nodeManager = new NodeManager(
 // wss.on("connection", (ws) => {
 //   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 // });
-const messageQueue = new MessageQueue(`http://localhost:${PORT}`);
+const messageQueue = new MessageQueue(`http://localhost:${PORT}`, PORT);
 const messageQueues = {};
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
@@ -77,6 +77,7 @@ app.post("/enqueue/:channel", async (req, res) => {
     console.error("Enqueue error:", error);
     res.status(500).json({ error: "Internal server error", details: error });
   }
+  console.log(messageQueue.getStats());
 });
 
 // Route to dequeue a message from a specific channel

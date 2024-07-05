@@ -26,12 +26,12 @@ export class MessageType {
 }
 
 export class MessageQueue {
-  constructor(port) {
+  constructor(port, portNum) {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
     this.dbUrl = "mongodb://localhost:27017";
-    this.dbName = "RabbitMQ_storage";
+    this.dbName = `RabbitMQ_storage${portNum}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
 
@@ -52,7 +52,7 @@ export class MessageQueue {
       // this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
-    }, 1000); // 每秒執行一次計算
+    }, 3000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
     // this.mongoDB.connect();
@@ -213,7 +213,11 @@ export class MessageQueue {
     }
 
     //監控佇列長度
-    this.stats.length[channel] = this.channels[channel].length;
+    if (!this.stats.length[channel]) {
+      this.stats.length[channel] = this.channels[channel].length;
+    }
+    this.stats.length[channel] += 1;
+
     //計算吞吐量
     if (!this.stats.throughput[channel]) {
       this.stats.throughput[channel] = { in: 0, out: 0 };
@@ -252,7 +256,7 @@ export class MessageQueue {
     console.log(message);
 
     //計算目前陣列長度
-    this.stats.length[channel] = this.channels[channel].length;
+    this.stats.length[channel] = this.channels[channel].length - 1;
 
     //計算throughput
     if (!this.stats.throughput[channel]) {
