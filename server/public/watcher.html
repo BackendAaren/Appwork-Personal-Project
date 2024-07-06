@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Monitor</title>
+  <title>LionMQ Watcher</title>
   <link rel="stylesheet" href="watcher.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <h1>LionMQ</h1>
+<body>S
   <div id="monitor"></div>
    <!-- navbar -->
    <nav class="navbar">
     <div class="logo_item">
       <i class="bx bx-menu" id="sidebarOpen"></i>
-      <img src="images/logo.png" alt=""></i>CodingNepal
+      <img src="images/logo.png" alt=""></i>LionMQ
     </div>
     <div class="search_bar">
       <input type="text" placeholder="Search" />
@@ -56,7 +56,7 @@
             <span class="navlink_icon">
               <i class="bx bx-grid-alt"></i>
             </span>
-            <span class="navlink">Overview</span>
+            <span class="navlink">Node Status</span>
             <i class="bx bx-chevron-right arrow-left"></i>
           </div>
           <ul class="menu_items submenu">
@@ -72,31 +72,7 @@
         <div class="menu_title menu_editor"></div>
         <!-- duplicate these li tag if you want to add or remove navlink only -->
         <!-- Start -->
-        <li class="item">
-          <a href="#" class="nav_link">
-            <span class="navlink_icon">
-              <i class="bx bxs-magic-wand"></i>
-            </span>
-            <span class="navlink">Magic build</span>
-          </a>
-        </li>
-        <!-- End -->
-        <li class="item">
-          <a href="#" class="nav_link">
-            <span class="navlink_icon">
-              <i class="bx bx-loader-circle"></i>
-            </span>
-            <span class="navlink">Filters</span>
-          </a>
-        </li>
-        <li class="item">
-          <a href="#" class="nav_link">
-            <span class="navlink_icon">
-              <i class="bx bx-filter"></i>
-            </span>
-            <span class="navlink">Filter</span>
-          </a>
-        </li>
+        
         <li class="item">
           <a href="#" class="nav_link">
             <span class="navlink_icon">
@@ -132,14 +108,7 @@
             <span class="navlink">Setting</span>
           </a>
         </li>
-        <li class="item">
-          <a href="#" class="nav_link">
-            <span class="navlink_icon">
-              <i class="bx bx-layer"></i>
-            </span>
-            <span class="navlink">Features</span>
-          </a>
-        </li>
+       
       </ul>
       <!-- Sidebar Open / Close -->
       <div class="bottom_content">
@@ -148,7 +117,7 @@
           <i class='bx bx-log-in' ></i>
         </div>
         <div class="bottom collapse_sidebar">
-          <span> Collapse</span>
+          <span> LionMQ</span>
           <i class='bx bx-log-out'></i>
         </div>
       </div>
@@ -160,7 +129,7 @@
     const charts = {}; // 用來存儲每個來源和通道的圖表
 
     // Function to create a chart
-    function createChart(ctx, label, chartAppearance) {
+    function createChart(ctx, label, chartAppearance,stepSize) {
       return new Chart(ctx, {
         type: 'line',
         data: {
@@ -170,6 +139,9 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          line:{
+            tension:0.4
+          },
           scales: {
             x: {
               type: 'time',
@@ -178,17 +150,46 @@
               },
               title: {
                 display: true,
-                text: 'Time'
-              }
+                text: 'Time',
+                font:{
+                    size:16
+                }
+              },
+              grid: {
+                display: false // 隱藏 X 軸的網格線
+            },
+            ticks: {
+                color: 'rgba(195, 106, 6, 0.99)', // 改變 X 軸標籤顏色
+                font: {
+                    size: 16 // 改變字體大小
+                }
+            }
             },
             y: {
               beginAtZero: true,
               title: {
                 display: true,
-                text: label
-              }
+                text: label,
+                font:{size:14}
+              },
+              grid: {
+                color: 'rgba(200, 200, 200, 0.2)' // 改變 Y 軸網格線顏色
+            },
+            ticks: {
+                color: 'rgba(54, 162, 235, 1)', // 改變 Y 軸標籤顏色
+                font: {
+                    size: 14 // 改變字體大小
+                },
+                stepSize:stepSize
             }
-          }
+
+              
+            }
+          },
+          animation: {
+        duration: 1000, // 動畫持續時間
+        easing: 'easeInOutQuad' // 動畫效果
+    }
         }
       });
     }
@@ -230,18 +231,19 @@
                   </div>
                   <div id="${elementId}-throughputData" class="chart_element"></div>
                 </div>
+                 <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-MessageRate"></canvas>
+                  </div>
+                  <div id="${elementId}-messageRateData" class="chart_element"></div>
+                </div>
                 <div class="chart_element_container">
                   <div class="chart-container">
                     <canvas id="${elementId}-Delay"></canvas>
                   </div>
                   <div id="${elementId}-delayData" class="chart_element"></div>
                 </div>
-                <div class="chart_element_container">
-                  <div class="chart-container">
-                    <canvas id="${elementId}-MessageRate"></canvas>
-                  </div>
-                  <div id="${elementId}-messageRateData" class="chart_element"></div>
-                </div>
+               
               </div>
             `;
             document.getElementById('monitor').appendChild(container);
@@ -253,21 +255,21 @@
                 data: [], // 數據
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
+                borderWidth: 2,
               },
               {
                 label: 'Throughput_in',
                 data: [], // 第二條線數據
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                borderWidth: 2,
               },
               {
                 label: 'Throughput_out',
                 data: [], // 第三條線數據
                 backgroundColor: 'rgba(238, 56, 23, 0.8)',
                 borderColor: 'rgba(238, 56, 23, 0.8)',
-                borderWidth: 1
+                borderWidth: 2,
               }
             ];
             const delayAppearance = [
@@ -299,7 +301,7 @@
             const canvasDelay = document.getElementById(`${elementId}-Delay`).getContext('2d');
             const canvasMessageRate = document.getElementById(`${elementId}-MessageRate`).getContext('2d');
             charts[elementId] = {
-              throughput: createChart(canvasThroughput, `Throughput - ${channel}`, throughputAppearance),
+              throughput: createChart(canvasThroughput, `Throughput - ${channel}`, throughputAppearance,100),
               delay: createChart(canvasDelay, `Delay - ${channel}`, delayAppearance),
               messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance)
             };
@@ -346,17 +348,17 @@
           chartMessageRate.data.datasets[1].data.push(data.outboundRate[channel]?.outboundRate || 0); // OutboundRate
 
           // 如果數據點超過 35 個，移除最舊的數據點
-          if (chartThroughput.data.labels.length > 35) {
+          if (chartThroughput.data.labels.length > 30) {
             chartThroughput.data.labels.shift();
             chartThroughput.data.datasets[0].data.shift();
             chartThroughput.data.datasets[1].data.shift();
             chartThroughput.data.datasets[2].data.shift();
           }
-          if (chartDelay.data.labels.length > 35) {
+          if (chartDelay.data.labels.length > 30) {
             chartDelay.data.labels.shift();
             chartDelay.data.datasets[0].data.shift();
           }
-          if (chartMessageRate.data.labels.length > 35) {
+          if (chartMessageRate.data.labels.length > 30) {
             chartMessageRate.data.labels.shift();
             chartMessageRate.data.datasets[0].data.shift();
             chartMessageRate.data.datasets[1].data.shift();
