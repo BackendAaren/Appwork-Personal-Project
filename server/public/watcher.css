@@ -1,22 +1,43 @@
 .stats-container {
     margin-bottom: 20px;
-  }
-  
-  .stats-container div {
+    display: flex;
+    flex-direction: column; /* 設置為列方向，讓 h2 與其他內容垂直排列 */
+}
+
+.chart_element_container{
+    display: flex;
+    justify-content: center;
+}
+
+.chart_element{
+    width:700px;
+    
+}
+
+.stats-container h2 {
+    align-self: flex-start; /* 將 h2 元素對齊到容器的左上角 */
+    margin: 0; /* 移除預設的外邊距 */
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.stats-container div {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 4px;
     background-color: #f9f9f9;
-  }
+    margin-top: 10px; /* 增加與 h2 之間的間距 */
+}
 
+.chart-container {
+    width: 700px;
+    height: 200px;
+    margin-bottom: 10px; /* 增加圖表之間的間距 */
+}
 
-  .chart-container{
-    width:800px;
-    height:200px
-  }
-
-
-  canvas{ 
+canvas {
     width: 100% !important;
     height: 100% !important;
-  }
+}

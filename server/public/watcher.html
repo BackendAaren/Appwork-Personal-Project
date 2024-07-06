@@ -15,7 +15,7 @@
     const charts = {}; // 用來存儲每個來源和通道的圖表
 
     // Function to create a chart
-    function createChart(ctx, label,chartAppearance) {
+    function createChart(ctx, label, chartAppearance) {
       return new Chart(ctx, {
         type: 'line',
         data: {
@@ -69,95 +69,112 @@
 
         channels.forEach(channel => {
           const elementId = `${source}-${channel}`;
-          let element = document.getElementById(elementId);
+          let container = document.getElementById(elementId);
 
-          if (!element) {
+          if (!container) {
             // Create a new container for the new source and channel
-            const container = document.createElement('div');
+            container = document.createElement('div');
             container.classList.add('stats-container');
+            container.id = elementId;
             container.innerHTML = `
               <h2>${source} - ${channel}</h2>
-              <div id="${elementId}"></div>
-              <div class="chart-container">
-                <canvas id="${elementId}-Throughput"></canvas>
-              </div>
-              <div class="chart-container">
-                <canvas id="${elementId}-Delay"></canvas>
-              </div>
-              <div class="chart-container">
-                <canvas id="${elementId}-MessageRate"></canvas>
+              <div class="charts-container">
+                <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-Throughput"></canvas>
+                  </div>
+                  <div id="${elementId}-throughputData" class="chart_element"></div>
+                </div>
+                <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-Delay"></canvas>
+                  </div>
+                  <div id="${elementId}-delayData" class="chart_element"></div>
+                </div>
+                <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-MessageRate"></canvas>
+                  </div>
+                  <div id="${elementId}-messageRateData" class="chart_element"></div>
+                </div>
               </div>
             `;
             document.getElementById('monitor').appendChild(container);
-            element = document.getElementById(elementId);
 
             // Create new chart for the new source and channel
             const throughputAppearance = [
-            {
-              label: "Message Queue Length",
-              data: [], // 數據
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Throughput_in',
-              data: [], // 第二條線數據
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Throughput_out',
-              data: [], // 第三條線數據
-              backgroundColor: 'rgba(238, 56, 23, 0.8)',
-              borderColor: 'rgba(238, 56, 23, 0.8)',
-              borderWidth: 1
-            }
-          ]
-          const delayAppearance = [
-            {
-              label: "Delay Rate",
-              data: [], // 數據
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-            }
-          ]
-          const messageRateAppearance = [
-            {
-              label: "InboundRate",
-              data: [], // 數據
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'OutboundRate',
-              data: [], // 第二條線數據
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1
-            }
-          ]
+              {
+                label: "Message Queue Length",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'Throughput_in',
+                data: [], // 第二條線數據
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'Throughput_out',
+                data: [], // 第三條線數據
+                backgroundColor: 'rgba(238, 56, 23, 0.8)',
+                borderColor: 'rgba(238, 56, 23, 0.8)',
+                borderWidth: 1
+              }
+            ];
+            const delayAppearance = [
+              {
+                label: "Delay Rate",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+              }
+            ];
+            const messageRateAppearance = [
+              {
+                label: "InboundRate",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'OutboundRate',
+                data: [], // 第二條線數據
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+              }
+            ];
             const canvasThroughput = document.getElementById(`${elementId}-Throughput`).getContext('2d');
             const canvasDelay = document.getElementById(`${elementId}-Delay`).getContext('2d');
-            const canvasMessageRate = document.getElementById(`${elementId}-MessageRate`).getContext(`2d`)
+            const canvasMessageRate = document.getElementById(`${elementId}-MessageRate`).getContext('2d');
             charts[elementId] = {
-              throughput: createChart(canvasThroughput, `Throughput - ${channel}`,throughputAppearance),
-              delay: createChart(canvasDelay, `Delay - ${channel}`,delayAppearance),
-              messageRate:createChart(canvasMessageRate,`MessageRate-${channel}`,messageRateAppearance)
+              throughput: createChart(canvasThroughput, `Throughput - ${channel}`, throughputAppearance),
+              delay: createChart(canvasDelay, `Delay - ${channel}`, delayAppearance),
+              messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance)
             };
           }
 
           // Update the data on the page
-          element.innerHTML = `
+          const throughputElement = document.getElementById(`${elementId}-throughputData`);
+          const delayElement = document.getElementById(`${elementId}-delayData`);
+          const messageRateElement = document.getElementById(`${elementId}-messageRateData`);
+
+          throughputElement.innerHTML = `
             <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
             <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
-            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
-            <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
             <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
             <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
+          `;
+          delayElement.innerHTML = `
+            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
+          `;
+          messageRateElement.innerHTML = `
             <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
             <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
           `;
@@ -177,16 +194,11 @@
           chartDelay.data.labels.push(currentTime);
           chartDelay.data.datasets[0].data.push(data.delay[channel] || 0); // Delay
 
-          //更新Message Rate 圖表
-          console.log(data.inboundRate)
-          const chartMessageRate =charts[elementId].messageRate
-          chartMessageRate.data.labels.push(currentTime)
-          chartMessageRate.data.datasets[0].data.push(data.inboundRate[channel]?.inboundRate||0)
-          chartMessageRate.data.datasets[1].data.push(data.outboundRate[channel]?.outboundRate||0)
-
-            // 更新 label
-        // chart.data.datasets[0].label = `Queue Length - ${channel}`;
-        //   chart.data.datasets[1].label = `Throughput - ${channel}`;
+          // 更新 Message Rate 圖表
+          const chartMessageRate = charts[elementId].messageRate;
+          chartMessageRate.data.labels.push(currentTime);
+          chartMessageRate.data.datasets[0].data.push(data.inboundRate[channel]?.inboundRate || 0); // InboundRate
+          chartMessageRate.data.datasets[1].data.push(data.outboundRate[channel]?.outboundRate || 0); // OutboundRate
 
           // 如果數據點超過 35 個，移除最舊的數據點
           if (chartThroughput.data.labels.length > 35) {
@@ -199,11 +211,10 @@
             chartDelay.data.labels.shift();
             chartDelay.data.datasets[0].data.shift();
           }
-          if(chartMessageRate.data.labels.length>35){
-            chartMessageRate.data.labels.shift()
-            chartMessageRate.data.datasets[0].data.shift()
-            chartMessageRate.data.datasets[1].data.shift()
-
+          if (chartMessageRate.data.labels.length > 35) {
+            chartMessageRate.data.labels.shift();
+            chartMessageRate.data.datasets[0].data.shift();
+            chartMessageRate.data.datasets[1].data.shift();
           }
 
           chartThroughput.update();
