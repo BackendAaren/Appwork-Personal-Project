@@ -48,8 +48,8 @@ export class MessageQueue {
     };
     // 定義計算進入和出站速率的計時器
     setInterval(() => {
-      // this.calculateInboundRates();
-      // this.calculateOutboundRates();
+      this.calculateInboundRates();
+      this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
     }, 3000); // 每秒執行一次計算
@@ -135,7 +135,7 @@ export class MessageQueue {
       this.stats.inboundRate[channel] = {
         count: 0,
         timestamp: now,
-        inboundRate: `${inboundRate.toFixed(2)}MPS`,
+        inboundRate: inboundRate,
       };
     });
   }
@@ -152,7 +152,7 @@ export class MessageQueue {
       this.stats.outboundRate[channel] = {
         count: 0,
         timestamp: now,
-        outboundRate: `${outboundRate.toFixed(2)}MPS`,
+        outboundRate: outboundRate,
       };
     });
   }
