@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3003;
+const PORT = 3006;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();

@@ -125,9 +125,10 @@
   </nav>
 
   <!-- Node status table -->
-  <div id="nodeStatusTable">
+ <!-- Node status table -->
+ <div id="nodeStatusTable">
     <h2>Node Status</h2>
-    <table id="statusTable" border="1">
+    <table id="statusTable">
       <thead>
         <tr>
           <th>Node</th>
@@ -202,7 +203,7 @@
       // Optionally, handle nodes that went down (not in primary or backup)
       // Here we assume that the server sends the list of down nodes
       if (data.wentDownNodes) {
-        console.log(data.wentDownNodes)
+        console.log(data.primaryNodes)
         data.wentDownNodes.forEach(node => {
           const row = document.createElement('tr');
           const nodeCell = document.createElement('td');

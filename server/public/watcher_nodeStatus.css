@@ -7,45 +7,111 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f2f5;
-  }
-  
-  #nodeStatusTable {
-    width: 80%;
-    max-width: 800px;
+}
+
+/* Node status table */
+#nodeStatusTable {
+    width: 100%;
+    max-width: 1000px;
     margin-top: 20px;
+    margin-left: 260px;
+    margin-bottom: 100px;
     border-collapse: collapse;
     background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
-  }
-  
-  #nodeStatusTable h2 {
+    animation: fadeIn 1s ease-in-out;
+}
+
+#nodeStatusTable h2 {
     text-align: center;
     padding: 20px;
     margin: 0;
     background-color: #007bff;
     color: #fff;
-  }
-  
-  #statusTable {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Status table */
+#statusTable {
     width: 100%;
     border-collapse: collapse;
-  }
-  
-  #statusTable th, #statusTable td {
-    padding: 12px 15px;
+}
+
+#statusTable th, #statusTable td {
+    padding: 16px 20px;
     border: 1px solid #ddd;
     text-align: left;
-  }
-  
-  #statusTable th {
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+#statusTable th {
     background-color: #f8f9fa;
-  }
-  
-  #statusTable tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
+    color: #333;
+    font-weight: 600;
+}
+
+#statusTable tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#statusTable tbody tr:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+/* Status cell styles */
+.status-primary {
+    color: #28a745;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+.status-backup {
+    color: #ffc107;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+.status-down {
+    color: #dc3545;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+/* Animation for status change */
+@keyframes statusFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Ensure sidebar and navbar layout does not overlap with the table */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+}
+
   
 
   
