@@ -25,7 +25,7 @@
     margin: 0; /* 移除預設的外邊距 */
     margin-top: 10px;
     padding: 15px 20px; /* 調整內邊距 */
-    background: linear-gradient(135deg, #bac9f3 0%, #8ea2ea 100%); /* 漸變背景色 */
+    background: linear-gradient(135deg, #bac9f3 0%, #6a83dd 100%); /* 漸變背景色 */
     color: #333; /* 調整文字顏色 */
     font-family: 'Montserrat', sans-serif; /* 選擇漂亮的字體 */
     font-size: 24px; /* 調整字體大小 */

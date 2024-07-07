@@ -2,7 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 import os from "os";
 import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
+import osUtils from "node-os-utils";
 import { channel } from "diagnostics_channel";
+import { cpuUsage } from "process";
 export class MessageType {
   constructor(
     channel,
@@ -45,6 +47,7 @@ export class MessageQueue {
       inboundRate: {},
       outboundRate: {},
       source: this.port,
+      cpuUsage: {},
     };
     // 定義計算進入和出站速率的計時器
     setInterval(() => {
@@ -52,6 +55,7 @@ export class MessageQueue {
       this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
+      this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
@@ -155,6 +159,21 @@ export class MessageQueue {
         outboundRate: outboundRate,
       };
     });
+  }
+
+  async calculateOsUSage() {
+    const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
+      return cpuPercentage;
+    });
+
+    const memUsage = await osUtils.mem.info().then((memInfo) => {
+      console.log("Total Memory:", memInfo.totalMemMb, "MB");
+      console.log("Free Memory:", memInfo.freeMemMb, "MB");
+      console.log("Used Memory:", memInfo.usedMemMb, "MB");
+      return memInfo;
+    });
+
+    this.stats.cpuUsage = { cpuUsage, memUsage };
   }
 
   updateMonitorStatus(statusUpdates) {

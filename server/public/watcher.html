@@ -208,7 +208,7 @@
 
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        console.log(data);
+        // console.log(data);
 
         const source = data.source || 'default-source';
         const channels = Object.keys(data.length); // 獲取所有的通道
@@ -311,19 +311,22 @@
           const throughputElement = document.getElementById(`${elementId}-throughputData`);
           const delayElement = document.getElementById(`${elementId}-delayData`);
           const messageRateElement = document.getElementById(`${elementId}-messageRateData`);
-
+          console.log(data.messageTotalComplete)
           throughputElement.innerHTML = `
             <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
-            <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
-            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
-            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
+            <strong>Throughput in:</strong> ${JSON.stringify(data.throughput[channel]?.in||0)}<br>
+            <strong>Throughput out:</strong> ${JSON.stringify(data.throughput[channel]?.out||0)}<br>
+
+
+            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete[channel])}<br>
+            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing[channel])}<br>
           `;
           delayElement.innerHTML = `
-            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
+            <strong>Delay:</strong> ${JSON.stringify(data.delay[channel])}<br>
           `;
           messageRateElement.innerHTML = `
-            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
-            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
+            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate[channel])}<br>
+            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate[channel])}<br>
           `;
 
           // Update the charts
@@ -380,5 +383,6 @@
     // Create a single WebSocket connection
     createWebSocket();
   </script>
+
 </body>
 </html>

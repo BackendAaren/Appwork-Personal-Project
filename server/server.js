@@ -156,7 +156,9 @@ app.get("/watcher/operationSystemStatus", async (req, res) => {
     return memInfo;
   });
 
-  res.status(200).send({ cpuUsage, memUsage });
+  const totalStatus = messageQueue.getStats();
+
+  res.status(200).send({ cpuUsage, memUsage, totalStatus });
 });
 
 app.get("/watcher.html", (req, res) => {
