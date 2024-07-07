@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>LionMQ Watcher</title>
-  <link rel="stylesheet" href="watcher.css">
+  <link rel="stylesheet" href="watcher_nodeStatus.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="monitor"></div>
-   <!-- navbar -->
-   <nav class="navbar">
+  <!-- navbar -->
+  <nav class="navbar">
     <div class="logo_item">
       <i class="bx bx-menu" id="sidebarOpen"></i>
       <img src="images/logo.png" alt=""></i>LionMQ
@@ -31,6 +31,8 @@
     <div class="menu_content">
       <ul class="menu_items">
         <div class="menu_title menu_dahsboard"></div>
+        <!-- duplicate or remove this li tag if you want to add or remove navlink with submenu -->
+        <!-- start -->
         <li class="item">
           <div href="#" class="nav_link submenu_item">
             <span class="navlink_icon">
@@ -46,12 +48,15 @@
             <a href="#" class="nav_link sublink">Nav Sub Link</a>
           </ul>
         </li>
+        <!-- end -->
+        <!-- duplicate this li tag if you want to add or remove  navlink with submenu -->
+        <!-- start -->
         <li class="item">
-          <div href="#" class="nav_link submenu_item">
+          <div href="/watcher_nodeStatus.html" class="nav_link submenu_item">
             <span class="navlink_icon">
               <i class="bx bx-grid-alt"></i>
             </span>
-            <span class="navlink">Node Status</span>
+            <a href="/watcher_nodeStatus.html"><span class="navlink">Node Status</span><a>
             <i class="bx bx-chevron-right arrow-left"></i>
           </div>
           <ul class="menu_items submenu">
@@ -61,9 +66,13 @@
             <a href="#" class="nav_link sublink">Nav Sub Link</a>
           </ul>
         </li>
+        <!-- end -->
       </ul>
       <ul class="menu_items">
         <div class="menu_title menu_editor"></div>
+        <!-- duplicate these li tag if you want to add or remove navlink only -->
+        <!-- Start -->
+        
         <li class="item">
           <a href="#" class="nav_link">
             <span class="navlink_icon">
@@ -99,6 +108,7 @@
             <span class="navlink">Setting</span>
           </a>
         </li>
+       
       </ul>
       <!-- Sidebar Open / Close -->
       <div class="bottom_content">
@@ -114,16 +124,18 @@
     </div>
   </nav>
 
-  <!-- Dynamic Node Status Table -->
-  <div id="nodeStatusContainer">
-    <table id="nodeStatusTable">
+  <!-- Node status table -->
+  <div id="nodeStatusTable">
+    <h2>Node Status</h2>
+    <table id="statusTable" border="1">
       <thead>
         <tr>
-          <th>Node URL</th>
+          <th>Node</th>
           <th>Status</th>
         </tr>
       </thead>
-      <tbody id="nodeStatusBody">
+      <tbody id="statusTableBody">
+        <!-- Dynamic content will be inserted here -->
       </tbody>
     </table>
   </div>
@@ -143,7 +155,12 @@
 
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
+       if(data.primaryNodes){
         updateNodeStatusTable(data);
+
+
+       }
+        
       };
 
       ws.onclose = function() {
@@ -155,42 +172,48 @@
 
     // Function to update the node status table
     function updateNodeStatusTable(data) {
-      const nodeStatusBody = document.getElementById('nodeStatusBody');
-      nodeStatusBody.innerHTML = '';
+      const tableBody = document.getElementById('statusTableBody');
+      tableBody.innerHTML = ''; // Clear existing rows
 
-      const primaryNodes = data.primaryNodes || [];
-      const backupNodes = data.backupNodes || [];
-      const wentDownNodes = data.wentDownNodes || [];
-
-      primaryNodes.forEach(node => {
-        const row = createNodeStatusRow(node, 'Primary');
-        nodeStatusBody.appendChild(row);
+      // Create rows for primary nodes
+      data.primaryNodes.forEach(node => {
+        const row = document.createElement('tr');
+        const nodeCell = document.createElement('td');
+        nodeCell.textContent = node;
+        const statusCell = document.createElement('td');
+        statusCell.textContent = 'Primary Node';
+        row.appendChild(nodeCell);
+        row.appendChild(statusCell);
+        tableBody.appendChild(row);
       });
 
-      backupNodes.forEach(node => {
-        const row = createNodeStatusRow(node, 'Backup');
-        nodeStatusBody.appendChild(row);
+      // Create rows for backup nodes
+      data.backupNodes.forEach(node => {
+        const row = document.createElement('tr');
+        const nodeCell = document.createElement('td');
+        nodeCell.textContent = node;
+        const statusCell = document.createElement('td');
+        statusCell.textContent = 'Backup Node';
+        row.appendChild(nodeCell);
+        row.appendChild(statusCell);
+        tableBody.appendChild(row);
       });
 
-      wentDownNodes.forEach(node => {
-        const row = createNodeStatusRow(node, 'Went Down');
-        nodeStatusBody.appendChild(row);
-      });
-    }
-
-    // Function to create a table row for a node
-    function createNodeStatusRow(node, status) {
-      const row = document.createElement('tr');
-
-      const nodeCell = document.createElement('td');
-      nodeCell.textContent = node;
-      row.appendChild(nodeCell);
-
-      const statusCell = document.createElement('td');
-      statusCell.textContent = status;
-      row.appendChild(statusCell);
-
-      return row;
+      // Optionally, handle nodes that went down (not in primary or backup)
+      // Here we assume that the server sends the list of down nodes
+      if (data.wentDownNodes) {
+        console.log(data.wentDownNodes)
+        data.wentDownNodes.forEach(node => {
+          const row = document.createElement('tr');
+          const nodeCell = document.createElement('td');
+          nodeCell.textContent = node;
+          const statusCell = document.createElement('td');
+          statusCell.textContent = 'Node Went Down';
+          row.appendChild(nodeCell);
+          row.appendChild(statusCell);
+          tableBody.appendChild(row);
+        });
+      }
     }
 
     // Create a single WebSocket connection

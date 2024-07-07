@@ -12,6 +12,7 @@ export class NodeManager {
     this.workAssignments = {};
     this.primaryToBackupMap = this.createPrimaryToBackupMap(nodes, backupNodes);
     this.primaryNodesSet = new Set(nodes); // 新增主節點集合
+    this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
 
@@ -287,6 +288,13 @@ export class NodeManager {
     this.backupNodes = this.allNodes.filter(
       (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
     );
-    return { primaryNodes: this.nodes, backupNodes: this.backupNodes };
+    this.wentDownNodes = this.allNodes.filter(
+      (node) => !this.aliveNodes.has(node)
+    );
+    return {
+      primaryNodes: this.nodes,
+      backupNodes: this.backupNodes,
+      wentDownNodes: this.wentDownNodes,
+    };
   }
 }
