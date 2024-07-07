@@ -1,5 +1,6 @@
 import axios from "axios";
 import crc from "crc";
+import { WebSocket } from "ws";
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
     this.nodes = nodes;
@@ -13,6 +14,30 @@ export class NodeManager {
     this.primaryNodesSet = new Set(nodes); // 新增主節點集合
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
+
+    this.wsClient = new WebSocket("ws://localhost:3008", {
+      headers: { source: port },
+    });
+    this.wsClient.on("open", () => {
+      console.log("Connected to Watcher server");
+    });
+
+    this.wsClient.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+
+    setInterval(() => {
+      this.sendNodeStatsToWatcher();
+    }, 4000);
+  }
+
+  sendNodeStatsToWatcher() {
+    if (this.wsClient.readyState === WebSocket.OPEN) {
+      const nodeStats = this.sendNodeStatusToNodeWatcher();
+      this.wsClient.send(JSON.stringify(nodeStats));
+    } else {
+      console.error("WebSocket connection is not open");
+    }
   }
 
   createPrimaryToBackupMap(nodes, backupNodes) {
@@ -248,5 +273,9 @@ export class NodeManager {
 
   getCurrentAliveNodes() {
     return this.aliveNodes;
+  }
+
+  sendNodeStatusToNodeWatcher() {
+    return { primaryNodes: this.nodes, backupNodes: this.backupNodes };
   }
 }
