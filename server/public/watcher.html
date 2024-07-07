@@ -303,7 +303,7 @@
             charts[elementId] = {
               throughput: createChart(canvasThroughput, `Throughput - ${channel}`, throughputAppearance,100),
               delay: createChart(canvasDelay, `Delay - ${channel}`, delayAppearance),
-              messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance)
+              messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance,0.5)
             };
           }
           console.log(data)

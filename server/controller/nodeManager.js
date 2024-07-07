@@ -175,6 +175,9 @@ export class NodeManager {
     // console.log(`這是Promote的nodes:${node}`);
     console.log(`這是Promote的this.nodes:${this.nodes}`);
     this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
+    this.backupNodes = this.backupNodes.filter(
+      (node) => !downNodes.includes(node)
+    );
   }
   async restoreBackupNodes(cameUpNodes) {
     try {
@@ -200,7 +203,9 @@ export class NodeManager {
         const primaryNode = this.primaryToBackupMap.get(cameUpNodes);
         if (this.nodes.includes(primaryNode)) {
           // 如果主節點仍在運行，將恢復的節點重新設置為從節點
-          this.backupNodes.push(cameUpNodes);
+          if (!this.backupNodes.includes(cameUpNodes)) {
+            this.backupNodes.push(cameUpNodes);
+          }
           console.log(
             `Node ${cameUpNodes} restored as a backup for ${primaryNode}`
           );
@@ -276,6 +281,12 @@ export class NodeManager {
   }
 
   sendNodeStatusToNodeWatcher() {
+    // this.backupNodes = this.backupNodes.filter((node) => {
+    //   !this.nodes.includes(node);
+    // });
+    this.backupNodes = this.allNodes.filter(
+      (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
+    );
     return { primaryNodes: this.nodes, backupNodes: this.backupNodes };
   }
 }

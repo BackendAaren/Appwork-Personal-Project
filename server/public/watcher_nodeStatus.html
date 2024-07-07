@@ -31,8 +31,6 @@
     <div class="menu_content">
       <ul class="menu_items">
         <div class="menu_title menu_dahsboard"></div>
-        <!-- duplicate or remove this li tag if you want to add or remove navlink with submenu -->
-        <!-- start -->
         <li class="item">
           <div href="#" class="nav_link submenu_item">
             <span class="navlink_icon">
@@ -48,9 +46,6 @@
             <a href="#" class="nav_link sublink">Nav Sub Link</a>
           </ul>
         </li>
-        <!-- end -->
-        <!-- duplicate this li tag if you want to add or remove  navlink with submenu -->
-        <!-- start -->
         <li class="item">
           <div href="#" class="nav_link submenu_item">
             <span class="navlink_icon">
@@ -66,13 +61,9 @@
             <a href="#" class="nav_link sublink">Nav Sub Link</a>
           </ul>
         </li>
-        <!-- end -->
       </ul>
       <ul class="menu_items">
         <div class="menu_title menu_editor"></div>
-        <!-- duplicate these li tag if you want to add or remove navlink only -->
-        <!-- Start -->
-        
         <li class="item">
           <a href="#" class="nav_link">
             <span class="navlink_icon">
@@ -108,7 +99,6 @@
             <span class="navlink">Setting</span>
           </a>
         </li>
-       
       </ul>
       <!-- Sidebar Open / Close -->
       <div class="bottom_content">
@@ -124,9 +114,21 @@
     </div>
   </nav>
 
-</body>
+  <!-- Dynamic Node Status Table -->
+  <div id="nodeStatusContainer">
+    <table id="nodeStatusTable">
+      <thead>
+        <tr>
+          <th>Node URL</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="nodeStatusBody">
+      </tbody>
+    </table>
+  </div>
+
   <script>
-    
     // Function to create WebSocket and handle messages
     function createWebSocket() {
       const ws = new WebSocket('ws://localhost:3008');
@@ -141,8 +143,7 @@
 
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        console.log(data)
-       
+        updateNodeStatusTable(data);
       };
 
       ws.onclose = function() {
@@ -152,9 +153,48 @@
       return ws;
     }
 
+    // Function to update the node status table
+    function updateNodeStatusTable(data) {
+      const nodeStatusBody = document.getElementById('nodeStatusBody');
+      nodeStatusBody.innerHTML = '';
+
+      const primaryNodes = data.primaryNodes || [];
+      const backupNodes = data.backupNodes || [];
+      const wentDownNodes = data.wentDownNodes || [];
+
+      primaryNodes.forEach(node => {
+        const row = createNodeStatusRow(node, 'Primary');
+        nodeStatusBody.appendChild(row);
+      });
+
+      backupNodes.forEach(node => {
+        const row = createNodeStatusRow(node, 'Backup');
+        nodeStatusBody.appendChild(row);
+      });
+
+      wentDownNodes.forEach(node => {
+        const row = createNodeStatusRow(node, 'Went Down');
+        nodeStatusBody.appendChild(row);
+      });
+    }
+
+    // Function to create a table row for a node
+    function createNodeStatusRow(node, status) {
+      const row = document.createElement('tr');
+
+      const nodeCell = document.createElement('td');
+      nodeCell.textContent = node;
+      row.appendChild(nodeCell);
+
+      const statusCell = document.createElement('td');
+      statusCell.textContent = status;
+      row.appendChild(statusCell);
+
+      return row;
+    }
+
     // Create a single WebSocket connection
     createWebSocket();
   </script>
-
 </body>
 </html>
