@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>S
+<body>
   <div id="monitor"></div>
    <!-- navbar -->
    <nav class="navbar">
@@ -52,11 +52,11 @@
         <!-- duplicate this li tag if you want to add or remove  navlink with submenu -->
         <!-- start -->
         <li class="item">
-          <div href="#" class="nav_link submenu_item">
+          <div href="/watcher_nodeStatus.html" class="nav_link submenu_item">
             <span class="navlink_icon">
               <i class="bx bx-grid-alt"></i>
             </span>
-            <span class="navlink">Node Status</span>
+            <a href="/watcher_nodeStatus.html"><span class="navlink">Node Status</span><a>
             <i class="bx bx-chevron-right arrow-left"></i>
           </div>
           <ul class="menu_items submenu">
@@ -306,27 +306,33 @@
               messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance)
             };
           }
+          console.log(data)
+          console.log(data.cpuUsage)
 
           // Update the data on the page
           const throughputElement = document.getElementById(`${elementId}-throughputData`);
           const delayElement = document.getElementById(`${elementId}-delayData`);
           const messageRateElement = document.getElementById(`${elementId}-messageRateData`);
-          console.log(data.messageTotalComplete)
           throughputElement.innerHTML = `
             <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
             <strong>Throughput in:</strong> ${JSON.stringify(data.throughput[channel]?.in||0)}<br>
             <strong>Throughput out:</strong> ${JSON.stringify(data.throughput[channel]?.out||0)}<br>
-
-
             <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete[channel])}<br>
             <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing[channel])}<br>
           `;
           delayElement.innerHTML = `
-            <strong>Delay:</strong> ${JSON.stringify(data.delay[channel])}<br>
+            <strong>Delay:</strong> ${JSON.stringify(data?.delay[channel]||0)}<br>
+            <strong>CPU Usage:</strong> ${JSON.stringify(data?.cpuUsage.cupUsage||0)}%<br>
+            <strong>Total Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.totalMemMb||0)}MB<br>
+            <strong>Used Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.usedMemMb||0)}MB<br>
+            <strong>Free Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.freeMemMb||0)}MB<br>
+
+
+
           `;
           messageRateElement.innerHTML = `
-            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate[channel])}<br>
-            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate[channel])}<br>
+            <strong>Inbound Rate:</strong> ${JSON.stringify(data?.inboundRate[channel]||0)}<br>
+            <strong>Outbound Rate:</strong> ${JSON.stringify(data?.outboundRate[channel]||0)}<br>
           `;
 
           // Update the charts

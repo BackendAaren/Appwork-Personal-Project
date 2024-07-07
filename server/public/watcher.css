@@ -1,6 +1,6 @@
 .stats-container {
     margin-bottom: 20px;
-    margin-left: 300px;;
+    margin-left: 350px;;
     display: flex;
     flex-direction: column; /* 設置為列方向，讓 h2 與其他內容垂直排列 */
     transform: scale(0.9); /* 將整個容器等比例縮小到 80% */
@@ -23,7 +23,7 @@
 .stats-container h2 {
     align-self: flex-start; /* 將 h2 元素對齊到容器的左上角 */
     margin: 0; /* 移除預設的外邊距 */
-    margin-top: 10px;
+    margin-top: 30px;
     padding: 15px 20px; /* 調整內邊距 */
     background: linear-gradient(135deg, #bac9f3 0%, #6a83dd 100%); /* 漸變背景色 */
     color: #333; /* 調整文字顏色 */
@@ -320,4 +320,10 @@ body.dark {
   .sidebar.close .bottom_content {
     left: -100%;
   }
+}
+
+a:-webkit-any-link {
+    color: inherit; 
+    text-decoration: none;
+
 }
