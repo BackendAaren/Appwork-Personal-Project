@@ -175,42 +175,42 @@ const client = new MessageQueueClient("localhost", 3002);
 //   isProcessing3 = false;
 // }, 600);
 
-// function enqueueMessages(channel, count) {
-//   for (let i = 0; i < count; i++) {
-//     client.enqueueMessage(channel, {
-//       messageType: "text",
-//       payload: `Message${i + 10}`,
-//     });
-//   }
-// }
+function enqueueMessages(channel, count) {
+  for (let i = 0; i < count; i++) {
+    client.enqueueMessage(channel, {
+      messageType: "text",
+      payload: `Message${i + 10}`,
+    });
+  }
+}
 
-// // 向各個頻道分別發送三條消息
-// enqueueMessages("channel1", 3);
-// enqueueMessages("channel2", 3);
-// enqueueMessages("channel3", 3);
-// // enqueueMessages("channel4", 3);
+// 向各個頻道分別發送三條消息
+enqueueMessages("channel1", 1);
+enqueueMessages("channel2", 1);
+enqueueMessages("channel3", 1);
+enqueueMessages("channel4", 1);
 
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 500);
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 800);
-setInterval(() => {
-  client.enqueueMessage("channel3", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 500);
-setInterval(() => {
-  client.enqueueMessage("channel4", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 500);
+// setInterval(() => {
+//   client.enqueueMessage("channel1", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel2", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel3", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel4", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);

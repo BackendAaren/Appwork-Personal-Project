@@ -19,7 +19,7 @@ export class MessageType {
     this.channel = channel;
     this.messageType = messageType;
     this.payload = payload;
-    this.messageID = messageID;
+    this.messageID = messageID || uuidv4().slice(0, 7);
     this.enqueueTime = enqueueTime;
     this.status = "unprocessed";
     this.requeueCount = requeueCount;
@@ -202,7 +202,7 @@ export class MessageQueue {
 
   async enqueue(channel, message, isSync = false) {
     const enqueueTime = Date.now();
-    message.messageID = uuidv4().slice(0, 7);
+    // message.messageID = uuidv4().slice(0, 7);
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
@@ -256,6 +256,22 @@ export class MessageQueue {
     if (this.waiting[channel] && this.waiting[channel].length > 0) {
       const resolveNext = this.waiting[channel].shift();
       resolveNext();
+    }
+  }
+
+  async nodesBackup(message, channel) {
+    try {
+      await this.mongoDB
+        .getCollection("messages")
+        .insertOne(message)
+        .then(() => console.log("Backup Success"))
+        .catch((error) => console.error("Failed to insert backup data", error));
+
+      await this.mongoDB
+        .getCollection("message_index")
+        .updateOne({ channel }, { $set: { channel } }, { upsert: true });
+    } catch (error) {
+      console.error("Backup Failed at messageQueue.js this.nodesBackup", error);
     }
   }
 

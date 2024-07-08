@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3006;
+const PORT = 3007;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -66,10 +66,16 @@ app.post("/enqueue/:channel", async (req, res) => {
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
     if (node === `http://localhost:${PORT}`) {
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/backup/${channel}`;
       await messageQueue.enqueue(channel, message);
+      await axios.post(backupURL, { message });
     } else {
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/backup/${channel}`;
       const targetURL = `${node}/enqueue/${channel}`;
       await axios.post(targetURL, { messageType, payload });
+      await axios.post(backupURL, { messageType, message });
     }
 
     res.status(200).json({ message: "Message enqueue successfully" });
@@ -103,6 +109,25 @@ app.get("/dequeue/:channel", async (req, res) => {
   }
 
   console.log(messageQueue.getStats());
+});
+
+//Nodes backup
+app.post("/backup/:channel", async (req, res) => {
+  console.log("Hiiiiiiiiii 我有被打到喔!!!!!");
+  try {
+    const { channel } = req.params;
+    const { message } = req.body;
+    console.log(message);
+
+    if (!message) {
+      return res
+        .status(400)
+        .json({ error: " Backup messageType and payload are required" });
+    }
+
+    // const message = new MessageType(channel, messageType, payload);
+    await messageQueue.nodesBackup(message, channel);
+  } catch (error) {}
 });
 
 // Route to acknowledge a message

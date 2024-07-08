@@ -317,8 +317,8 @@
             <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
             <strong>Throughput in:</strong> ${JSON.stringify(data.throughput[channel]?.in||0)}<br>
             <strong>Throughput out:</strong> ${JSON.stringify(data.throughput[channel]?.out||0)}<br>
-            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete[channel])}<br>
-            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing[channel])}<br>
+            <strong>Message Total Complete:</strong> ${JSON.stringify(data?.messageTotalComplete[channel]||0)}<br>
+            <strong>Now Executing:</strong> ${JSON.stringify(data?.now_executing[channel]||0)}<br>
           `;
           delayElement.innerHTML = `
             <strong>Delay:</strong> ${JSON.stringify(data?.delay[channel]||0)}<br>
