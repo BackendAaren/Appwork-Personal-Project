@@ -1,6 +1,8 @@
 import axios from "axios";
 import crc from "crc";
 import { WebSocket } from "ws";
+import { MongoDB } from "../model/mongodb.js";
+import { MessageQueue } from "./messageQueue.js";
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
     this.nodes = nodes;
@@ -15,6 +17,9 @@ export class NodeManager {
     this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
+    this.dbUrl = "mongodb://localhost:27017";
+    this.dbName = `RabbitMQ_storage${port}`;
+    this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
 
     this.wsClient = new WebSocket("ws://localhost:3008", {
       headers: { source: port },

@@ -334,6 +334,17 @@ export class MessageQueue {
     return message;
   }
 
+  async updateBackupNodeStatus(channel, messageID) {
+    try {
+      await this.mongoDB
+        .getCollection("messages")
+        .updateOne({ messageID, channel }, { $set: { status: "processed" } })
+        .then(console.log("update backup node success"));
+    } catch (error) {
+      console.error("Failed to update backup node status (messageQueue.js)");
+    }
+  }
+
   async ack(channel, messageID) {
     try {
       await this.mongoDB

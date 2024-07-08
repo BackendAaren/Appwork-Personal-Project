@@ -95,6 +95,9 @@ app.get("/dequeue/:channel", async (req, res) => {
   try {
     if (node === `http://localhost:${PORT}`) {
       const message = await messageQueue.dequeue(channel);
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/updateBackupNode/${channel}`;
+      await axios.post(backupURL, { messageID: message.messageID });
       res.status(200).json(message);
     } else {
       const targetURL = `${node}/dequeue/${channel}`;
@@ -127,7 +130,19 @@ app.post("/backup/:channel", async (req, res) => {
 
     // const message = new MessageType(channel, messageType, payload);
     await messageQueue.nodesBackup(message, channel);
-  } catch (error) {}
+  } catch (error) {
+    console.error("Failed to insert backup data in (server.js)");
+  }
+});
+
+app.post("/updateBackupNode/:channel", async (req, res) => {
+  try {
+    const { channel } = req.params;
+    const { messageID } = req.body;
+    await messageQueue.updateBackupNodeStatus(channel, messageID);
+  } catch (error) {
+    console.error("Failed to update backup node status");
+  }
 });
 
 // Route to acknowledge a message
