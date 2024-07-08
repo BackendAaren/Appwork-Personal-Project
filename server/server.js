@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3007;
+const PORT = 3006;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -116,7 +116,6 @@ app.get("/dequeue/:channel", async (req, res) => {
 
 //Nodes backup
 app.post("/backup/:channel", async (req, res) => {
-  console.log("Hiiiiiiiiii 我有被打到喔!!!!!");
   try {
     const { channel } = req.params;
     const { message } = req.body;
@@ -142,6 +141,14 @@ app.post("/updateBackupNode/:channel", async (req, res) => {
     await messageQueue.updateBackupNodeStatus(channel, messageID);
   } catch (error) {
     console.error("Failed to update backup node status");
+  }
+});
+
+app.post("/backupNodeRecoverMessage", async (req, res) => {
+  try {
+    await messageQueue.recoverMessagesFromMongoDB();
+  } catch (error) {
+    console.error(`Backup node failed to recover message (server.js)`);
   }
 });
 

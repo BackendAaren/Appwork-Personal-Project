@@ -1,8 +1,7 @@
 import axios from "axios";
 import crc from "crc";
 import { WebSocket } from "ws";
-import { MongoDB } from "../model/mongodb.js";
-import { MessageQueue } from "./messageQueue.js";
+
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
     this.nodes = nodes;
@@ -17,9 +16,6 @@ export class NodeManager {
     this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
-    this.dbUrl = "mongodb://localhost:27017";
-    this.dbName = `RabbitMQ_storage${port}`;
-    this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
 
     this.wsClient = new WebSocket("ws://localhost:3008", {
       headers: { source: port },
@@ -152,7 +148,7 @@ export class NodeManager {
     }, 6000);
   }
 
-  promoteBackupNodes(downNodes) {
+  async promoteBackupNodes(downNodes) {
     // console.log(`這是downNodes:${downNodes}`);
     for (const node of downNodes) {
       // console.log(`這是Node:${node}`);
@@ -172,7 +168,10 @@ export class NodeManager {
           console.log(`這是重生的this.nodes${this.nodes}`);
           this.nodes.splice(index, 0, backupNode);
         }
-
+        console.log(`這是nodeManager的backupNode:${backupNode}`);
+        if (this.aliveNodes.has(backupNode)) {
+          await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+        }
         // this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
       }

@@ -102,54 +102,54 @@ class MessageQueueClient {
 // 使用示例
 const client = new MessageQueueClient("localhost", 3002);
 
-let isProcessing = false;
-setInterval(async () => {
-  if (isProcessing) {
-    return;
-  }
-  isProcessing = true;
+// let isProcessing = false;
+// setInterval(async () => {
+//   if (isProcessing) {
+//     return;
+//   }
+//   isProcessing = true;
 
-  try {
-    const message = await client.dequeueMessage("channel1", true);
-    console.log(`This is dequeue: ${message}`);
+//   try {
+//     const message = await client.dequeueMessage("channel1", true);
+//     console.log(`This is dequeue: ${message}`);
 
-    const parsedMessage = JSON.parse(message);
+//     const parsedMessage = JSON.parse(message);
 
-    // 模擬特定訊息處理出錯的情況
+//     // 模擬特定訊息處理出錯的情況
 
-    console.log(`Processing message: ${parsedMessage.messageID}`);
-    await client.ackMessage("channel1", parsedMessage.messageID);
-  } catch (error) {
-    console.error(`Error processing message: ${error.message}`);
-    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
-  }
+//     console.log(`Processing message: ${parsedMessage.messageID}`);
+//     await client.ackMessage("channel1", parsedMessage.messageID);
+//   } catch (error) {
+//     console.error(`Error processing message: ${error.message}`);
+//     // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+//   }
 
-  isProcessing = false;
-}, 100);
-let isProcessing2 = false;
-setInterval(async () => {
-  if (isProcessing2) {
-    return;
-  }
-  isProcessing2 = true;
+//   isProcessing = false;
+// }, 100);
+// let isProcessing2 = false;
+// setInterval(async () => {
+//   if (isProcessing2) {
+//     return;
+//   }
+//   isProcessing2 = true;
 
-  try {
-    const message = await client.dequeueMessage("channel3", true);
-    console.log(`This is dequeue: ${message}`);
+//   try {
+//     const message = await client.dequeueMessage("channel3", true);
+//     console.log(`This is dequeue: ${message}`);
 
-    const parsedMessage = JSON.parse(message);
+//     const parsedMessage = JSON.parse(message);
 
-    // 模擬特定訊息處理出錯的情況
+//     // 模擬特定訊息處理出錯的情況
 
-    console.log(`Processing message: ${parsedMessage.messageID}`);
-    await client.ackMessage("channel1", parsedMessage.messageID);
-  } catch (error) {
-    console.error(`Error processing message: ${error.message}`);
-    // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
-  }
+//     console.log(`Processing message: ${parsedMessage.messageID}`);
+//     await client.ackMessage("channel1", parsedMessage.messageID);
+//   } catch (error) {
+//     console.error(`Error processing message: ${error.message}`);
+//     // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+//   }
 
-  isProcessing2 = false;
-}, 200);
+//   isProcessing2 = false;
+// }, 200);
 let isProcessing3 = false;
 setInterval(async () => {
   if (isProcessing3) {
@@ -158,7 +158,7 @@ setInterval(async () => {
   isProcessing3 = true;
 
   try {
-    const message = await client.dequeueMessage("channel4", true);
+    const message = await client.dequeueMessage("channel3", true);
     console.log(`This is dequeue: ${message}`);
 
     const parsedMessage = JSON.parse(message);
