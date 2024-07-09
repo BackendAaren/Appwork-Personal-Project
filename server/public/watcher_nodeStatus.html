@@ -156,6 +156,7 @@
 
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
+        console.log(data)
        if(data.primaryNodes){
         updateNodeStatusTable(data);
 
@@ -173,49 +174,41 @@
 
     // Function to update the node status table
     function updateNodeStatusTable(data) {
-      const tableBody = document.getElementById('statusTableBody');
-      tableBody.innerHTML = ''; // Clear existing rows
+  const tableBody = document.getElementById('statusTableBody');
+  tableBody.innerHTML = ''; // Clear existing rows
 
-      // Create rows for primary nodes
-      data.primaryNodes.forEach(node => {
-        const row = document.createElement('tr');
-        const nodeCell = document.createElement('td');
-        nodeCell.textContent = node;
-        const statusCell = document.createElement('td');
-        statusCell.textContent = 'Primary Node';
-        row.appendChild(nodeCell);
-        row.appendChild(statusCell);
-        tableBody.appendChild(row);
-      });
+  const createRow = (node, statusText, statusClass) => {
+    const row = document.createElement('tr');
+    const nodeCell = document.createElement('td');
+    nodeCell.textContent = node;
+    const statusCell = document.createElement('td');
+    statusCell.textContent = statusText;
+    const indicatorCell = document.createElement('td');
+    indicatorCell.innerHTML = `<span class="status-indicator ${statusClass}"></span>`;
+    row.appendChild(nodeCell);
+    row.appendChild(statusCell);
+    row.appendChild(indicatorCell);
+    tableBody.appendChild(row);
+  };
 
-      // Create rows for backup nodes
-      data.backupNodes.forEach(node => {
-        const row = document.createElement('tr');
-        const nodeCell = document.createElement('td');
-        nodeCell.textContent = node;
-        const statusCell = document.createElement('td');
-        statusCell.textContent = 'Backup Node';
-        row.appendChild(nodeCell);
-        row.appendChild(statusCell);
-        tableBody.appendChild(row);
-      });
+  // Create rows for primary nodes
+  data.primaryNodes.forEach(node => {
+    createRow(node, 'Primary Node', 'status-primary');
+  });
 
-      // Optionally, handle nodes that went down (not in primary or backup)
-      // Here we assume that the server sends the list of down nodes
-      if (data.wentDownNodes) {
-        console.log(data.primaryNodes)
-        data.wentDownNodes.forEach(node => {
-          const row = document.createElement('tr');
-          const nodeCell = document.createElement('td');
-          nodeCell.textContent = node;
-          const statusCell = document.createElement('td');
-          statusCell.textContent = 'Node Went Down';
-          row.appendChild(nodeCell);
-          row.appendChild(statusCell);
-          tableBody.appendChild(row);
-        });
-      }
-    }
+  // Create rows for backup nodes
+  data.backupNodes.forEach(node => {
+    createRow(node, 'Backup Node', 'status-backup');
+  });
+
+  // Optionally, handle nodes that went down (not in primary or backup)
+  if (data.wentDownNodes) {
+    data.wentDownNodes.forEach(node => {
+      createRow(node, 'Node Went Down', 'status-down');
+    });
+  }
+}
+
 
     // Create a single WebSocket connection
     createWebSocket();

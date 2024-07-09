@@ -158,7 +158,7 @@ setInterval(async () => {
   isProcessing3 = true;
 
   try {
-    const message = await client.dequeueMessage("channel3", true);
+    const message = await client.dequeueMessage("channel1", true);
     console.log(`This is dequeue: ${message}`);
 
     const parsedMessage = JSON.parse(message);
@@ -190,12 +190,12 @@ setInterval(async () => {
 // enqueueMessages("channel3", 1);
 // enqueueMessages("channel4", 1);
 
-// setInterval(() => {
-//   client.enqueueMessage("channel1", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 1000);
+setInterval(() => {
+  client.enqueueMessage("channel1", {
+    messageType: "text",
+    payload: `Message:${Math.random() + 10}`,
+  });
+}, 1000);
 // setInterval(() => {
 //   client.enqueueMessage("channel2", {
 //     messageType: "text",

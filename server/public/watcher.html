@@ -314,15 +314,15 @@
           const delayElement = document.getElementById(`${elementId}-delayData`);
           const messageRateElement = document.getElementById(`${elementId}-messageRateData`);
           throughputElement.innerHTML = `
-            <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
-            <strong>Throughput in:</strong> ${JSON.stringify(data.throughput[channel]?.in||0)}<br>
-            <strong>Throughput out:</strong> ${JSON.stringify(data.throughput[channel]?.out||0)}<br>
-            <strong>Message Total Complete:</strong> ${JSON.stringify(data?.messageTotalComplete[channel]||0)}<br>
-            <strong>Now Executing:</strong> ${JSON.stringify(data?.now_executing[channel]||0)}<br>
+            <strong>${channel} queue length:</strong> ${JSON.stringify(data.length[channel])} messages <br>
+            <strong>Throughput in:</strong> ${JSON.stringify(data.throughput[channel]?.in||0)} messages <br>
+            <strong>Throughput out:</strong> ${JSON.stringify(data.throughput[channel]?.out||0)} messages<br>
+            <strong>Message Total Complete:</strong> ${JSON.stringify(data?.messageTotalComplete[channel]||0)} messages<br>
+            <strong>Now Executing:</strong>MessageID: ${JSON.stringify(data?.now_executing[channel]||0)}<br>
           `;
           delayElement.innerHTML = `
             <strong>Delay:</strong> ${JSON.stringify(data?.delay[channel]||0)}<br>
-            <strong>CPU Usage:</strong> ${JSON.stringify(data?.cpuUsage.cupUsage||0)}%<br>
+            <strong>CPU Usage:</strong> ${JSON.stringify(data?.cpuUsage.cpuUsage||0)}%<br>
             <strong>Total Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.totalMemMb||0)}MB<br>
             <strong>Used Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.usedMemMb||0)}MB<br>
             <strong>Free Memory:</strong> ${JSON.stringify(data?.cpuUsage.memUsage.freeMemMb||0)}MB<br>
@@ -331,8 +331,8 @@
 
           `;
           messageRateElement.innerHTML = `
-            <strong>Inbound Rate:</strong> ${JSON.stringify(data?.inboundRate[channel]||0)}<br>
-            <strong>Outbound Rate:</strong> ${JSON.stringify(data?.outboundRate[channel]||0)}<br>
+            <strong>Inbound Rate:</strong> ${JSON.stringify(data?.inboundRate[channel].inboundRate||0)} /MPS<br>
+            <strong>Outbound Rate:</strong> ${data?.outboundRate?.[channel]?.outboundRate || 0} /MPS<br>
           `;
 
           // Update the charts

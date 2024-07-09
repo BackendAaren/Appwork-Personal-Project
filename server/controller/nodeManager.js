@@ -299,6 +299,7 @@ export class NodeManager {
       primaryNodes: this.nodes,
       backupNodes: this.backupNodes,
       wentDownNodes: this.wentDownNodes,
+      primaryBackupNodes: this.primaryToBackupMap,
     };
   }
 }
