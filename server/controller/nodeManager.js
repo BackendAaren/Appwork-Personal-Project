@@ -1,5 +1,7 @@
 import axios from "axios";
 import crc from "crc";
+import { WebSocket } from "ws";
+
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
     this.nodes = nodes;
@@ -11,8 +13,33 @@ export class NodeManager {
     this.workAssignments = {};
     this.primaryToBackupMap = this.createPrimaryToBackupMap(nodes, backupNodes);
     this.primaryNodesSet = new Set(nodes); // 新增主節點集合
+    this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
+
+    this.wsClient = new WebSocket("ws://localhost:3008", {
+      headers: { source: port },
+    });
+    this.wsClient.on("open", () => {
+      console.log("Connected to Watcher server");
+    });
+
+    this.wsClient.on("error", (error) => {
+      console.error("WebSocket error:", error);
+    });
+
+    setInterval(() => {
+      this.sendNodeStatsToWatcher();
+    }, 4000);
+  }
+
+  sendNodeStatsToWatcher() {
+    if (this.wsClient.readyState === WebSocket.OPEN) {
+      const nodeStats = this.sendNodeStatusToNodeWatcher();
+      this.wsClient.send(JSON.stringify(nodeStats));
+    } else {
+      console.error("WebSocket connection is not open");
+    }
   }
 
   createPrimaryToBackupMap(nodes, backupNodes) {
@@ -121,7 +148,7 @@ export class NodeManager {
     }, 6000);
   }
 
-  promoteBackupNodes(downNodes) {
+  async promoteBackupNodes(downNodes) {
     // console.log(`這是downNodes:${downNodes}`);
     for (const node of downNodes) {
       // console.log(`這是Node:${node}`);
@@ -141,7 +168,10 @@ export class NodeManager {
           console.log(`這是重生的this.nodes${this.nodes}`);
           this.nodes.splice(index, 0, backupNode);
         }
-
+        console.log(`這是nodeManager的backupNode:${backupNode}`);
+        if (this.aliveNodes.has(backupNode)) {
+          await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+        }
         // this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
       }
@@ -150,6 +180,9 @@ export class NodeManager {
     // console.log(`這是Promote的nodes:${node}`);
     console.log(`這是Promote的this.nodes:${this.nodes}`);
     this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
+    this.backupNodes = this.backupNodes.filter(
+      (node) => !downNodes.includes(node)
+    );
   }
   async restoreBackupNodes(cameUpNodes) {
     try {
@@ -175,7 +208,9 @@ export class NodeManager {
         const primaryNode = this.primaryToBackupMap.get(cameUpNodes);
         if (this.nodes.includes(primaryNode)) {
           // 如果主節點仍在運行，將恢復的節點重新設置為從節點
-          this.backupNodes.push(cameUpNodes);
+          if (!this.backupNodes.includes(cameUpNodes)) {
+            this.backupNodes.push(cameUpNodes);
+          }
           console.log(
             `Node ${cameUpNodes} restored as a backup for ${primaryNode}`
           );
@@ -248,5 +283,23 @@ export class NodeManager {
 
   getCurrentAliveNodes() {
     return this.aliveNodes;
+  }
+
+  sendNodeStatusToNodeWatcher() {
+    // this.backupNodes = this.backupNodes.filter((node) => {
+    //   !this.nodes.includes(node);
+    // });
+    this.backupNodes = this.allNodes.filter(
+      (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
+    );
+    this.wentDownNodes = this.allNodes.filter(
+      (node) => !this.aliveNodes.has(node)
+    );
+    return {
+      primaryNodes: this.nodes,
+      backupNodes: this.backupNodes,
+      wentDownNodes: this.wentDownNodes,
+      primaryBackupNodes: this.primaryToBackupMap,
+    };
   }
 }

@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3003;
+const PORT = 3005;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -66,10 +66,16 @@ app.post("/enqueue/:channel", async (req, res) => {
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
     if (node === `http://localhost:${PORT}`) {
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/backup/${channel}`;
       await messageQueue.enqueue(channel, message);
+      await axios.post(backupURL, { message });
     } else {
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/backup/${channel}`;
       const targetURL = `${node}/enqueue/${channel}`;
       await axios.post(targetURL, { messageType, payload });
+      await axios.post(backupURL, { messageType, message });
     }
 
     res.status(200).json({ message: "Message enqueue successfully" });
@@ -89,6 +95,9 @@ app.get("/dequeue/:channel", async (req, res) => {
   try {
     if (node === `http://localhost:${PORT}`) {
       const message = await messageQueue.dequeue(channel);
+      const bkNode = nodeManager.primaryToBackupMap.get(node);
+      const backupURL = `${bkNode}/updateBackupNode/${channel}`;
+      await axios.post(backupURL, { messageID: message.messageID });
       res.status(200).json(message);
     } else {
       const targetURL = `${node}/dequeue/${channel}`;
@@ -103,6 +112,44 @@ app.get("/dequeue/:channel", async (req, res) => {
   }
 
   console.log(messageQueue.getStats());
+});
+
+//Nodes backup
+app.post("/backup/:channel", async (req, res) => {
+  try {
+    const { channel } = req.params;
+    const { message } = req.body;
+    console.log(message);
+
+    if (!message) {
+      return res
+        .status(400)
+        .json({ error: " Backup messageType and payload are required" });
+    }
+
+    // const message = new MessageType(channel, messageType, payload);
+    await messageQueue.nodesBackup(message, channel);
+  } catch (error) {
+    console.error("Failed to insert backup data in (server.js)");
+  }
+});
+
+app.post("/updateBackupNode/:channel", async (req, res) => {
+  try {
+    const { channel } = req.params;
+    const { messageID } = req.body;
+    await messageQueue.updateBackupNodeStatus(channel, messageID);
+  } catch (error) {
+    console.error("Failed to update backup node status");
+  }
+});
+
+app.post("/backupNodeRecoverMessage", async (req, res) => {
+  try {
+    await messageQueue.recoverMessagesFromMongoDB();
+  } catch (error) {
+    console.error(`Backup node failed to recover message (server.js)`);
+  }
 });
 
 // Route to acknowledge a message
@@ -156,7 +203,9 @@ app.get("/watcher/operationSystemStatus", async (req, res) => {
     return memInfo;
   });
 
-  res.status(200).send({ cpuUsage, memUsage });
+  const totalStatus = messageQueue.getStats();
+
+  res.status(200).send({ cpuUsage, memUsage, totalStatus });
 });
 
 app.get("/watcher.html", (req, res) => {

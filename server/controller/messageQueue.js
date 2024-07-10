@@ -2,7 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 import os from "os";
 import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
+import osUtils from "node-os-utils";
 import { channel } from "diagnostics_channel";
+import { cpuUsage } from "process";
 export class MessageType {
   constructor(
     channel,
@@ -17,7 +19,7 @@ export class MessageType {
     this.channel = channel;
     this.messageType = messageType;
     this.payload = payload;
-    this.messageID = messageID;
+    this.messageID = messageID || uuidv4().slice(0, 7);
     this.enqueueTime = enqueueTime;
     this.status = "unprocessed";
     this.requeueCount = requeueCount;
@@ -45,13 +47,15 @@ export class MessageQueue {
       inboundRate: {},
       outboundRate: {},
       source: this.port,
+      cpuUsage: {},
     };
     // 定義計算進入和出站速率的計時器
     setInterval(() => {
-      // this.calculateInboundRates();
-      // this.calculateOutboundRates();
+      this.calculateInboundRates();
+      this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
+      this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
@@ -135,7 +139,7 @@ export class MessageQueue {
       this.stats.inboundRate[channel] = {
         count: 0,
         timestamp: now,
-        inboundRate: `${inboundRate.toFixed(2)}MPS`,
+        inboundRate: inboundRate,
       };
     });
   }
@@ -152,9 +156,24 @@ export class MessageQueue {
       this.stats.outboundRate[channel] = {
         count: 0,
         timestamp: now,
-        outboundRate: `${outboundRate.toFixed(2)}MPS`,
+        outboundRate: outboundRate,
       };
     });
+  }
+
+  async calculateOsUSage() {
+    const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
+      return cpuPercentage;
+    });
+
+    const memUsage = await osUtils.mem.info().then((memInfo) => {
+      console.log("Total Memory:", memInfo.totalMemMb, "MB");
+      console.log("Free Memory:", memInfo.freeMemMb, "MB");
+      console.log("Used Memory:", memInfo.usedMemMb, "MB");
+      return memInfo;
+    });
+
+    this.stats.cpuUsage = { cpuUsage, memUsage };
   }
 
   updateMonitorStatus(statusUpdates) {
@@ -183,7 +202,7 @@ export class MessageQueue {
 
   async enqueue(channel, message, isSync = false) {
     const enqueueTime = Date.now();
-    message.messageID = uuidv4().slice(0, 7);
+    // message.messageID = uuidv4().slice(0, 7);
     if (!this.channels[channel]) {
       this.channels[channel] = [];
     }
@@ -237,6 +256,22 @@ export class MessageQueue {
     if (this.waiting[channel] && this.waiting[channel].length > 0) {
       const resolveNext = this.waiting[channel].shift();
       resolveNext();
+    }
+  }
+
+  async nodesBackup(message, channel) {
+    try {
+      await this.mongoDB
+        .getCollection("messages")
+        .insertOne(message)
+        .then(() => console.log("Backup Success"))
+        .catch((error) => console.error("Failed to insert backup data", error));
+
+      await this.mongoDB
+        .getCollection("message_index")
+        .updateOne({ channel }, { $set: { channel } }, { upsert: true });
+    } catch (error) {
+      console.error("Backup Failed at messageQueue.js this.nodesBackup", error);
     }
   }
 
@@ -297,6 +332,17 @@ export class MessageQueue {
       }
     }
     return message;
+  }
+
+  async updateBackupNodeStatus(channel, messageID) {
+    try {
+      await this.mongoDB
+        .getCollection("messages")
+        .updateOne({ messageID, channel }, { $set: { status: "processed" } })
+        .then(console.log("update backup node success"));
+    } catch (error) {
+      console.error("Failed to update backup node status (messageQueue.js)");
+    }
   }
 
   async ack(channel, messageID) {

@@ -2,51 +2,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Monitor</title>
+  <title>LionMQ Watcher</title>
   <link rel="stylesheet" href="watcher.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>LionMQ</h1>
   <div id="monitor"></div>
+   <!-- navbar -->
+   <nav class="navbar">
+    <div class="logo_item">
+      <i class="bx bx-menu" id="sidebarOpen"></i>
+      <img src="images/logo.png" alt=""></i>LionMQ
+    </div>
+    <div class="search_bar">
+      <input type="text" placeholder="Search" />
+    </div>
+    <div class="navbar_content">
+      <i class="bi bi-grid"></i>
+      <i class='bx bx-sun' id="darkLight"></i>
+      <i class='bx bx-bell' ></i>
+      <img src="images/profile.jpg" alt="" class="profile" />
+    </div>
+  </nav>
+  <!-- sidebar -->
+  <nav class="sidebar">
+    <div class="menu_content">
+      <ul class="menu_items">
+        <div class="menu_title menu_dahsboard"></div>
+        <!-- duplicate or remove this li tag if you want to add or remove navlink with submenu -->
+        <!-- start -->
+        <li class="item">
+          <div href="#" class="nav_link submenu_item">
+            <span class="navlink_icon">
+              <i class="bx bx-home-alt"></i>
+            </span>
+            <span class="navlink">Home</span>
+            <i class="bx bx-chevron-right arrow-left"></i>
+          </div>
+          <ul class="menu_items submenu">
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+          </ul>
+        </li>
+        <!-- end -->
+        <!-- duplicate this li tag if you want to add or remove  navlink with submenu -->
+        <!-- start -->
+        <li class="item">
+          <div href="/watcher_nodeStatus.html" class="nav_link submenu_item">
+            <span class="navlink_icon">
+              <i class="bx bx-grid-alt"></i>
+            </span>
+            <a href="/watcher_nodeStatus.html"><span class="navlink">Node Status</span><a>
+            <i class="bx bx-chevron-right arrow-left"></i>
+          </div>
+          <ul class="menu_items submenu">
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+            <a href="#" class="nav_link sublink">Nav Sub Link</a>
+          </ul>
+        </li>
+        <!-- end -->
+      </ul>
+      <ul class="menu_items">
+        <div class="menu_title menu_editor"></div>
+        <!-- duplicate these li tag if you want to add or remove navlink only -->
+        <!-- Start -->
+        
+        <li class="item">
+          <a href="#" class="nav_link">
+            <span class="navlink_icon">
+              <i class="bx bx-cloud-upload"></i>
+            </span>
+            <span class="navlink">Upload new</span>
+          </a>
+        </li>
+      </ul>
+      <ul class="menu_items">
+        <div class="menu_title menu_setting"></div>
+        <li class="item">
+          <a href="#" class="nav_link">
+            <span class="navlink_icon">
+              <i class="bx bx-flag"></i>
+            </span>
+            <span class="navlink">Notice board</span>
+          </a>
+        </li>
+        <li class="item">
+          <a href="#" class="nav_link">
+            <span class="navlink_icon">
+              <i class="bx bx-medal"></i>
+            </span>
+            <span class="navlink">Award</span>
+          </a>
+        </li>
+        <li class="item">
+          <a href="#" class="nav_link">
+            <span class="navlink_icon">
+              <i class="bx bx-cog"></i>
+            </span>
+            <span class="navlink">Setting</span>
+          </a>
+        </li>
+       
+      </ul>
+      <!-- Sidebar Open / Close -->
+      <div class="bottom_content">
+        <div class="bottom expand_sidebar">
+          <span> Expand</span>
+          <i class='bx bx-log-in' ></i>
+        </div>
+        <div class="bottom collapse_sidebar">
+          <span> LionMQ</span>
+          <i class='bx bx-log-out'></i>
+        </div>
+      </div>
+    </div>
+  </nav>
 
+</body>
   <script>
     const charts = {}; // 用來存儲每個來源和通道的圖表
 
     // Function to create a chart
-    function createChart(ctx) {
+    function createChart(ctx, label, chartAppearance,stepSize) {
       return new Chart(ctx, {
         type: 'line',
         data: {
           labels: [], // 時間標籤
-          datasets: [
-            {
-              label: 'Queue Length',
-              data: [], // 第一條線數據
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Throughput_in',
-              data: [], // 第二條線數據
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Throughput_out',
-              data: [], // 第三條線數據
-              backgroundColor: 'rgba(238, 56, 23, 0.8)',
-              borderColor: 'rgba(238, 56, 23, 0.8)',
-              borderWidth: 1
-            }
-          ]
+          datasets: chartAppearance
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          line:{
+            tension:0.4
+          },
           scales: {
             x: {
               type: 'time',
@@ -55,20 +150,50 @@
               },
               title: {
                 display: true,
-                text: 'Time'
-              }
+                text: 'Time',
+                font:{
+                    size:16
+                }
+              },
+              grid: {
+                display: false // 隱藏 X 軸的網格線
+            },
+            ticks: {
+                color: 'rgba(195, 106, 6, 0.99)', // 改變 X 軸標籤顏色
+                font: {
+                    size: 16 // 改變字體大小
+                }
+            }
             },
             y: {
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Value'
-              }
+                text: label,
+                font:{size:14}
+              },
+              grid: {
+                color: 'rgba(200, 200, 200, 0.2)' // 改變 Y 軸網格線顏色
+            },
+            ticks: {
+                color: 'rgba(54, 162, 235, 1)', // 改變 Y 軸標籤顏色
+                font: {
+                    size: 14 // 改變字體大小
+                },
+                stepSize:stepSize
             }
-          }
+
+              
+            }
+          },
+          animation: {
+        duration: 1000, // 動畫持續時間
+        easing: 'easeInOutQuad' // 動畫效果
+    }
         }
       });
     }
+
     // Function to create WebSocket and handle messages
     function createWebSocket() {
       const ws = new WebSocket('ws://localhost:3008');
@@ -83,70 +208,175 @@
 
       ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        console.log(data);
+        // console.log(data);
 
         const source = data.source || 'default-source';
-        const channels = data.length; // 獲取所有的通道
+        const channels = Object.keys(data.length); // 獲取所有的通道
 
-        for (const channel in channels) {
+        channels.forEach(channel => {
           const elementId = `${source}-${channel}`;
-          let element = document.getElementById(elementId);
+          let container = document.getElementById(elementId);
 
-          if (!element) {
+          if (!container) {
             // Create a new container for the new source and channel
-            const container = document.createElement('div');
+            container = document.createElement('div');
             container.classList.add('stats-container');
+            container.id = elementId;
             container.innerHTML = `
               <h2>${source} - ${channel}</h2>
-              <div id="${elementId}"></div>
-              <div class="chart-container">
-                <canvas id="${elementId}-chart"></canvas>
+              <div class="charts-container">
+                <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-Throughput"></canvas>
+                  </div>
+                  <div id="${elementId}-throughputData" class="chart_element"></div>
+                </div>
+                 <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-MessageRate"></canvas>
+                  </div>
+                  <div id="${elementId}-messageRateData" class="chart_element"></div>
+                </div>
+                <div class="chart_element_container">
+                  <div class="chart-container">
+                    <canvas id="${elementId}-Delay"></canvas>
+                  </div>
+                  <div id="${elementId}-delayData" class="chart_element"></div>
+                </div>
+               
               </div>
             `;
             document.getElementById('monitor').appendChild(container);
-            element = document.getElementById(elementId);
 
             // Create new chart for the new source and channel
-            const canvas = document.getElementById(`${elementId}-chart`).getContext('2d');
-            charts[elementId] = createChart(canvas);
+            const throughputAppearance = [
+              {
+                label: "Message Queue Length",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+              },
+              {
+                label: 'Throughput_in',
+                data: [], // 第二條線數據
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+              },
+              {
+                label: 'Throughput_out',
+                data: [], // 第三條線數據
+                backgroundColor: 'rgba(238, 56, 23, 0.8)',
+                borderColor: 'rgba(238, 56, 23, 0.8)',
+                borderWidth: 2,
+              }
+            ];
+            const delayAppearance = [
+              {
+                label: "Delay Rate",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+              }
+            ];
+            const messageRateAppearance = [
+              {
+                label: "InboundRate",
+                data: [], // 數據
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'OutboundRate',
+                data: [], // 第二條線數據
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+              }
+            ];
+            const canvasThroughput = document.getElementById(`${elementId}-Throughput`).getContext('2d');
+            const canvasDelay = document.getElementById(`${elementId}-Delay`).getContext('2d');
+            const canvasMessageRate = document.getElementById(`${elementId}-MessageRate`).getContext('2d');
+            charts[elementId] = {
+              throughput: createChart(canvasThroughput, `Throughput - ${channel}`, throughputAppearance,100),
+              delay: createChart(canvasDelay, `Delay - ${channel}`, delayAppearance),
+              messageRate: createChart(canvasMessageRate, `MPS`, messageRateAppearance,0.5)
+            };
           }
+          console.log(data)
+          console.log(data.cpuUsage)
 
           // Update the data on the page
-          element.innerHTML = `
-            <strong>${channel}:queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
-            <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
-            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
-            <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
-            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
-            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
-            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
-            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
+          const throughputElement = document.getElementById(`${elementId}-throughputData`);
+          const delayElement = document.getElementById(`${elementId}-delayData`);
+          const messageRateElement = document.getElementById(`${elementId}-messageRateData`);
+          throughputElement.innerHTML = `
+            <strong>${channel} queue length</strong> ${JSON.stringify(data.length[channel])} messages <br>
+            <strong>Throughput in</strong> ${JSON.stringify(data.throughput[channel]?.in||0)} messages <br>
+            <strong>Throughput out</strong> ${JSON.stringify(data.throughput[channel]?.out||0)} messages<br>
+            <strong>Message Total Complete</strong> ${JSON.stringify(data?.messageTotalComplete[channel]?.totalComplete||0)} messages<br>
+            <strong>Now Executing</strong>MessageID ${JSON.stringify(data?.now_executing[channel]||0)}<br>
+          `;
+          delayElement.innerHTML = `
+            <strong>Delay</strong> ${JSON.stringify(data?.delay[channel]||0)}<br>
+            <strong>CPU Usage</strong> ${JSON.stringify(data?.cpuUsage.cpuUsage||0)}%<br>
+            <strong>Total Memory</strong> ${JSON.stringify(data?.cpuUsage.memUsage.totalMemMb||0)}MB<br>
+            <strong>Used Memory</strong> ${JSON.stringify(data?.cpuUsage.memUsage.usedMemMb||0)}MB<br>
+            <strong>Free Memory</strong> ${JSON.stringify(data?.cpuUsage.memUsage.freeMemMb||0)}MB<br>
+
+
+
+          `;
+          messageRateElement.innerHTML = `
+            <strong>Inbound Rate</strong> ${JSON.stringify(data?.inboundRate[channel].inboundRate||0)} /MPS<br>
+            <strong>Outbound Rate</strong> ${data?.outboundRate?.[channel]?.outboundRate || 0} /MPS<br>
           `;
 
-          // Update the chart
-          const chart = charts[elementId];
+          // Update the charts
           const currentTime = new Date();
-          console.log(data.throughput)
-          //更新length
-          chart.data.labels.push(currentTime);
-          chart.data.datasets[0].data.push(data.length[channel] || 0); // 更新 throughput 數據
-          chart.data.datasets[1].data.push(data.throughput.channel1.in || 0); // 更新 throughput_in 數據
-          chart.data.datasets[2].data.push(data.throughput.channel1.out || 0); // 更新 throughput_on 數據
 
+          // 更新 Throughput 圖表
+          const chartThroughput = charts[elementId].throughput;
+          chartThroughput.data.labels.push(currentTime);
+          chartThroughput.data.datasets[0].data.push(data.length[channel] || 0); // Queue Length
+          chartThroughput.data.datasets[1].data.push(data.throughput[channel]?.in || 0); // Throughput_in
+          chartThroughput.data.datasets[2].data.push(data.throughput[channel]?.out || 0); // Throughput_out
 
-               // 更新 label
-               chart.data.datasets[0].label = `Queue Length - ${channel}`;
-          chart.data.datasets[1].label = `Throughput - ${channel}`;
-          
-          if (chart.data.labels.length > 35) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-            chart.data.datasets[1].data.shift();
-            chart.data.datasets[2].data.shift();
+          // 更新 Delay 圖表
+          const chartDelay = charts[elementId].delay;
+          chartDelay.data.labels.push(currentTime);
+          chartDelay.data.datasets[0].data.push(data.delay[channel] || 0); // Delay
+
+          // 更新 Message Rate 圖表
+          const chartMessageRate = charts[elementId].messageRate;
+          chartMessageRate.data.labels.push(currentTime);
+          chartMessageRate.data.datasets[0].data.push(data.inboundRate[channel]?.inboundRate || 0); // InboundRate
+          chartMessageRate.data.datasets[1].data.push(data.outboundRate[channel]?.outboundRate || 0); // OutboundRate
+
+          // 如果數據點超過 35 個，移除最舊的數據點
+          if (chartThroughput.data.labels.length > 30) {
+            chartThroughput.data.labels.shift();
+            chartThroughput.data.datasets[0].data.shift();
+            chartThroughput.data.datasets[1].data.shift();
+            chartThroughput.data.datasets[2].data.shift();
+          }
+          if (chartDelay.data.labels.length > 30) {
+            chartDelay.data.labels.shift();
+            chartDelay.data.datasets[0].data.shift();
+          }
+          if (chartMessageRate.data.labels.length > 30) {
+            chartMessageRate.data.labels.shift();
+            chartMessageRate.data.datasets[0].data.shift();
+            chartMessageRate.data.datasets[1].data.shift();
           }
 
-          chart.update();
-        }
+          chartThroughput.update();
+          chartDelay.update();
+          chartMessageRate.update();
+        });
       };
 
       ws.onclose = function() {
@@ -159,5 +389,6 @@
     // Create a single WebSocket connection
     createWebSocket();
   </script>
+
 </body>
 </html>

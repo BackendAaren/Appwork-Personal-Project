@@ -1,112 +1,173 @@
-.stats-container {
-  margin-bottom: 20px;
-  margin-left: 350px;
-  display: flex;
-  flex-direction: column;
-  transform: scale(0.9);
-  transform-origin: left;
+body {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f2f5;
 }
 
-.chart_element_container {
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid #b0c4de;
-  margin-bottom: 20px; /* 增加間距 */
+/* Node status table */
+#nodeStatusTable {
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 20px;
+    margin-left: 250px;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: fadeIn 1s ease-in-out;
 }
 
-.chart_element {
-  width: 700px;
-  height: auto; /* 讓高度自適應內容 */
-  max-width: 500px;
-  border: none;
-  font-size: 18px; /* 調整字體大小 */
-  font-family: 'Montserrat', sans-serif; /* 使用漂亮的字體 */
-  line-height: 1.6; /* 調整行高 */
-  padding: 20px;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  position: relative;
-  color: #333;
+#nodeStatusTable h2 {
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
 }
 
-.chart_element:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+/* Status table */
+#statusTable {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.chart_element::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+#statusTable th, #statusTable td {
+    padding: 16px 20px;
+    border: 1px solid #ddd;
+    text-align: left;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
-.chart_element strong {
-  display: block;
-  margin-bottom: 5px;
-  border-bottom: 1px solid #b0c4de; /* 添加底線 */
-  padding-bottom: 5px;
-  color: #1e88e5;
+#statusTable th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 600;
 }
 
-.chart_element .value {
-  color: #42a5f5;
-  font-weight: bold;
+#statusTable tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
-.stats-container h2 {
-  align-self: flex-start;
+#statusTable tbody tr:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+/* Status cell styles */
+.status-primary {
+    color: #28a745;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+.status-backup {
+    color: #ffc107;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+.status-down {
+    color: #dc3545;
+    font-weight: bold;
+    animation: statusFadeIn 0.5s ease-in-out;
+}
+
+/* Indicator lights */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.status-primary {
+    background-color: #28a745;
+}
+
+.status-backup {
+    background-color: #ffc107;
+}
+
+.status-down {
+    background-color: #dc3545;
+}
+
+/* Animation for status change */
+@keyframes statusFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Ensure sidebar and navbar layout does not overlap with the table */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* Import Google font - Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+* {
   margin: 0;
-  margin-top: 30px;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
-  color: #333;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  border: 1px solid #b0c4de;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
 }
-
-.stats-container div {
-  padding: 10px;
-  border-radius: 4px;
-  background-color: #f4f3f34b;
-  margin-top: 10px;
-  color: #333;
+:root {
+  --white-color: #fff;
+  --blue-color: #4070f4;
+  --grey-color: #707070;
+  --grey-color-light: #aaa;
 }
-
-.chart-container {
-  width: 750px;
-  height: 300px;
-  margin-bottom: 10px;
-  margin-right: 50px;
-  border: 1px solid #b0c4de;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fafafa;
+body {
+  background-color: #e7f2fd;
+  transition: all 0.5s ease;
+}
+body.dark {
+  background-color: #333;
+}
+body.dark {
+  --white-color: #333;
+  --blue-color: #fff;
+  --grey-color: #f2f2f2;
+  --grey-color-light: #aaa;
 }
 
 
 
+  
 
-
-
-canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-
+  
 /* Import Google font - Poppins */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 * {
@@ -375,4 +436,3 @@ a:-webkit-any-link {
     text-decoration: none;
 
 }
-
