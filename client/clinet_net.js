@@ -195,22 +195,22 @@ setInterval(() => {
     messageType: "text",
     payload: `Message:${Math.random() + 10}`,
   });
+}, 300);
+setInterval(() => {
+  client.enqueueMessage("channel2", {
+    messageType: "text",
+    payload: `Message:${Math.random() + 10}`,
+  });
 }, 1000);
-// setInterval(() => {
-//   client.enqueueMessage("channel2", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 1000);
-// setInterval(() => {
-//   client.enqueueMessage("channel3", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 1000);
-// setInterval(() => {
-//   client.enqueueMessage("channel4", {
-//     messageType: "text",
-//     payload: `Message:${Math.random() + 10}`,
-//   });
-// }, 1000);
+setInterval(() => {
+  client.enqueueMessage("channel3", {
+    messageType: "text",
+    payload: `Message:${Math.random() + 10}`,
+  });
+}, 1000);
+setInterval(() => {
+  client.enqueueMessage("channel4", {
+    messageType: "text",
+    payload: `Message:${Math.random() + 10}`,
+  });
+}, 1000);
