@@ -1,0 +1,10 @@
+node_modules
+EC2_aaren.pem
+Aws_ec.pem
+.env
+uploads/*
+!uploads/.gitkeep
+certificate.crt
+private.key
+ca_bundle.crt
+.vscode

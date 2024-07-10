@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Monitor</title>
+  <link rel="stylesheet" href="watcher.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@latest"></script>
+</head>
+<body>
+  <h1>LionMQ</h1>
+  <div id="monitor"></div>
+
+  <script>
+    const charts = {}; // 用來存儲每個來源和通道的圖表
+
+    // Function to create a chart
+    function createChart(ctx) {
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [], // 時間標籤
+          datasets: [
+            {
+              label: 'Queue Length',
+              data: [], // 第一條線數據
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Throughput_in',
+              data: [], // 第二條線數據
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Throughput_out',
+              data: [], // 第三條線數據
+              backgroundColor: 'rgba(238, 56, 23, 0.8)',
+              borderColor: 'rgba(238, 56, 23, 0.8)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'second'
+              },
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Value'
+              }
+            }
+          }
+        }
+      });
+    }
+    // Function to create WebSocket and handle messages
+    function createWebSocket() {
+      const ws = new WebSocket('ws://localhost:3008');
+
+      ws.onopen = function() {
+        console.log('WebSocket connection opened');
+      };
+
+      ws.onerror = function(error) {
+        console.error('WebSocket error:', error);
+      };
+
+      ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log(data);
+
+        const source = data.source || 'default-source';
+        const channels = data.length; // 獲取所有的通道
+
+        for (const channel in channels) {
+          const elementId = `${source}-${channel}`;
+          let element = document.getElementById(elementId);
+
+          if (!element) {
+            // Create a new container for the new source and channel
+            const container = document.createElement('div');
+            container.classList.add('stats-container');
+            container.innerHTML = `
+              <h2>${source} - ${channel}</h2>
+              <div id="${elementId}"></div>
+              <div class="chart-container">
+                <canvas id="${elementId}-chart"></canvas>
+              </div>
+            `;
+            document.getElementById('monitor').appendChild(container);
+            element = document.getElementById(elementId);
+
+            // Create new chart for the new source and channel
+            const canvas = document.getElementById(`${elementId}-chart`).getContext('2d');
+            charts[elementId] = createChart(canvas);
+          }
+
+          // Update the data on the page
+          element.innerHTML = `
+            <strong>${channel}:queue length:</strong> ${JSON.stringify(data.length[channel])}<br>
+            <strong>Throughput:</strong> ${JSON.stringify(data.throughput)}<br>
+            <strong>Delay:</strong> ${JSON.stringify(data.delay)}<br>
+            <strong>Blocked:</strong> ${JSON.stringify(data.blocked)}<br>
+            <strong>Message Total Complete:</strong> ${JSON.stringify(data.messageTotalComplete)}<br>
+            <strong>Now Executing:</strong> ${JSON.stringify(data.now_executing)}<br>
+            <strong>Inbound Rate:</strong> ${JSON.stringify(data.inboundRate)}<br>
+            <strong>Outbound Rate:</strong> ${JSON.stringify(data.outboundRate)}<br>
+          `;
+
+          // Update the chart
+          const chart = charts[elementId];
+          const currentTime = new Date();
+          console.log(data.throughput)
+          //更新length
+          chart.data.labels.push(currentTime);
+          chart.data.datasets[0].data.push(data.length[channel] || 0); // 更新 throughput 數據
+          chart.data.datasets[1].data.push(data.throughput.channel1.in || 0); // 更新 throughput_in 數據
+          chart.data.datasets[2].data.push(data.throughput.channel1.out || 0); // 更新 throughput_on 數據
+
+
+               // 更新 label
+               chart.data.datasets[0].label = `Queue Length - ${channel}`;
+          chart.data.datasets[1].label = `Throughput - ${channel}`;
+          
+          if (chart.data.labels.length > 35) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+            chart.data.datasets[1].data.shift();
+            chart.data.datasets[2].data.shift();
+          }
+
+          chart.update();
+        }
+      };
+
+      ws.onclose = function() {
+        console.log('WebSocket connection closed');
+      };
+
+      return ws;
+    }
+
+    // Create a single WebSocket connection
+    createWebSocket();
+  </script>
+</body>
+</html>

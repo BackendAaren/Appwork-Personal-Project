@@ -1,0 +1,25 @@
+{
+  "name": "personal-project",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cond": "^0.0.8",
+    "express": "^4.19.2",
+    "mongodb": "^6.7.0",
+    "mutex-lock": "^2.0.1",
+    "net": "^1.0.2",
+    "node-fetch": "^3.3.2",
+    "os": "^0.1.2",
+    "ws": "^8.17.1"
+  },
+  "description": ""
+}
