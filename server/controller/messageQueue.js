@@ -2,8 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
 import osUtils from "node-os-utils";
-import { channel } from "diagnostics_channel";
-import { cpuUsage } from "process";
+import dotenv from "dotenv";
+dotenv.config();
+const websocketHost = process.env.WATCHER_SERVER;
 export class MessageType {
   constructor(
     channel,
@@ -32,7 +33,7 @@ export class MessageQueue {
     this.waiting = {};
     this.monitorClients = new Set();
     this.dbUrl = "mongodb://localhost:27017";
-    this.dbName = `RabbitMQ_storage${portNum}`;
+    this.dbName = `LionMQ_storage${portNum}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
 
@@ -63,7 +64,7 @@ export class MessageQueue {
       await this.mongoDB.close();
       process.exit();
     });
-    this.wsClient = new WebSocket("ws://localhost:3008", {
+    this.wsClient = new WebSocket(websocketHost, {
       headers: { source: this.port },
     });
     this.wsClient.on("open", () => {

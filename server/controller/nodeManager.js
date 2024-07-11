@@ -147,10 +147,17 @@ export class NodeManager {
         //這一行邏輯怪怪的
         if (this.aliveNodes.has(backupNode)) {
           const index = this.nodes.indexOf(node);
-          this.nodes.splice(index, 0, backupNode);
+          this.nodes.splice(index, 1, backupNode);
         }
+        console.log(`這是nodeManager的backupNode:${backupNode}`);
+        console.log(`這是node manager 的 aliveNodes : ${this.aliveNodes}`);
         if (this.aliveNodes.has(backupNode)) {
-          await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+          try {
+            console.log(`${backupNode}:我進來backup了`);
+            await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+          } catch {
+            console.error(`Failed to recover data from ${backupNode}`);
+          }
         }
         // this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
