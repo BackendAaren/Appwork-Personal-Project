@@ -31,8 +31,6 @@ export class NodeManager {
     setInterval(() => {
       this.sendNodeStatsToWatcher();
     }, 4000);
-
-    console.log(`這是primary nodes :${port}`);
   }
 
   sendNodeStatsToWatcher() {
@@ -136,7 +134,7 @@ export class NodeManager {
         this.promoteBackupNodes(nodesWentDown);
       }
       console.log(`這是nodesWentDown:${nodesWentDown}`);
-      console.log(`這是primary nodes :${this.nodes}`);
+      console.log(this.nodes);
 
       this.aliveNodes = aliveNodes; //update aliveNodes集合
     }, 6000);

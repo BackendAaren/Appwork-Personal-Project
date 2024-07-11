@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import os from "os";
 import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
 import osUtils from "node-os-utils";

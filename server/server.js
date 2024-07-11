@@ -12,8 +12,6 @@ import { MessageQueue, MessageType } from "./controller/messageQueue.js";
 import { NodeManager } from "./controller/nodeManager.js";
 // 取得目前模組的檔案路徑
 const __filename = fileURLToPath(import.meta.url);
-// Start server
-const PORT = 3002;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -21,20 +19,12 @@ const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 // Middleware
 app.use(bodyParser.json());
-//
+//use dotenv
 dotenv.config();
 // Initialize MessageQueue instance
 //initialize nodeManager
-const nodes = [
-  "http://localhost:3002",
-  "http://localhost:3003",
-  "http://localhost:3004",
-];
-const backupNodes = [
-  "http://localhost:3005",
-  "http://localhost:3006",
-  "http://localhost:3007",
-];
+const nodes = process.env.NODE_PRIMARYNODES.split(",");
+const backupNodes = process.env.NODE_BACKUPNODES.split(",");
 const replicationFactor = 3;
 let nodeManager = new NodeManager(
   nodes,
@@ -42,7 +32,10 @@ let nodeManager = new NodeManager(
   replicationFactor,
   process.env.SERVER_HOST
 );
-const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+const messageQueue = new MessageQueue(
+  process.env.SERVER_HOST,
+  process.env.PORT
+);
 const messageQueues = {};
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
@@ -198,6 +191,6 @@ wss.on("connection", (ws) => {
   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 });
 
-server.listen(() => {
+server.listen(process.env.PORT, () => {
   console.log(`Server is running on ${process.env.SERVER_HOST}`);
 });
