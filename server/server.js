@@ -1,18 +1,17 @@
 import http from "http";
 import { WebSocketServer } from "ws";
-import osUtils from "node-os-utils";
 import path from "path";
 import { fileURLToPath } from "url"; // 引入 fileURLToPath
 import { dirname } from "path"; // 引入 dirname
 import axios from "axios";
 import express from "express";
 import bodyParser from "body-parser";
+import dotenv from "dotenv";
 // Import MessageQueue and MessageType classes
 import { MessageQueue, MessageType } from "./controller/messageQueue.js";
 import { NodeManager } from "./controller/nodeManager.js";
 // 取得目前模組的檔案路徑
 const __filename = fileURLToPath(import.meta.url);
-
 // Start server
 const PORT = 3002;
 // 從檔案路徑中取得目錄路徑
@@ -22,6 +21,8 @@ const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 // Middleware
 app.use(bodyParser.json());
+//
+dotenv.config();
 // Initialize MessageQueue instance
 //initialize nodeManager
 const nodes = [
@@ -39,12 +40,9 @@ let nodeManager = new NodeManager(
   nodes,
   backupNodes,
   replicationFactor,
-  `http://localhost:${PORT}`
+  process.env.SERVER_HOST
 );
-// wss.on("connection", (ws) => {
-//   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
-// });
-const messageQueue = new MessageQueue(`http://localhost:${PORT}`, PORT);
+const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
 const messageQueues = {};
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
@@ -65,7 +63,7 @@ app.post("/enqueue/:channel", async (req, res) => {
     // );
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
-    if (node === `http://localhost:${PORT}`) {
+    if (node === process.env.SERVER_HOST) {
       const bkNode = nodeManager.primaryToBackupMap.get(node);
       const backupURL = `${bkNode}/backup/${channel}`;
       await messageQueue.enqueue(channel, message);
@@ -93,7 +91,7 @@ app.get("/dequeue/:channel", async (req, res) => {
   console.log(`這是server Side 的連接node: ${node}`);
 
   try {
-    if (node === `http://localhost:${PORT}`) {
+    if (node === process.env.SERVER_HOST) {
       const message = await messageQueue.dequeue(channel);
       const bkNode = nodeManager.primaryToBackupMap.get(node);
       const backupURL = `${bkNode}/updateBackupNode/${channel}`;
@@ -200,6 +198,6 @@ wss.on("connection", (ws) => {
   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(() => {
+  console.log(`Server is running on ${process.env.SERVER_HOST}`);
 });

@@ -31,6 +31,8 @@ export class NodeManager {
     setInterval(() => {
       this.sendNodeStatsToWatcher();
     }, 4000);
+
+    console.log(`這是primary nodes :${port}`);
   }
 
   sendNodeStatsToWatcher() {
@@ -133,16 +135,8 @@ export class NodeManager {
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
       }
-
-      // console.log(`這是this.aliveNodes${this.aliveNodes}`);
-      // console.log(`這是aliveNodes${[...aliveNodes]}`);
-      // console.log(this.aliveNodes);
       console.log(`這是nodesWentDown:${nodesWentDown}`);
-
-      // console.log(`這是this.backupNodes:${this.backupNodes}`);
-      console.log(this.nodes);
-      // console.log(this.primaryToBackupMap);
-      // // console.log(this.allNodes);
+      console.log(`這是primary nodes :${this.nodes}`);
 
       this.aliveNodes = aliveNodes; //update aliveNodes集合
     }, 6000);
@@ -159,16 +153,9 @@ export class NodeManager {
         //這一行邏輯怪怪的
         if (this.aliveNodes.has(backupNode)) {
           const index = this.nodes.indexOf(node);
-          console.log(`這是所有死掉的節點Node:${downNodes}`);
-          console.log(`這是死掉前的this.nodes${this.nodes}`);
-          console.log(`這是死掉的主節點Node:${node}`);
-          console.log(`這是死掉的備用節點Node:${backupNode}`);
-          console.log(`這是節點Index:${index}`);
-          // this.nodes.push(backupNode);
-          console.log(`這是重生的this.nodes${this.nodes}`);
           this.nodes.splice(index, 0, backupNode);
         }
-        console.log(`這是nodeManager的backupNode:${backupNode}`);
+        // console.log(`這是nodeManager的backupNode:${backupNode}`);
         if (this.aliveNodes.has(backupNode)) {
           await axios.post(`${backupNode}/backupNodeRecoverMessage`);
         }
@@ -176,8 +163,6 @@ export class NodeManager {
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
       }
     }
-    // console.log(`這是Promote的backupNodes:${backupNode}`);
-    // console.log(`這是Promote的nodes:${node}`);
     console.log(`這是Promote的this.nodes:${this.nodes}`);
     this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
     this.backupNodes = this.backupNodes.filter(
@@ -186,13 +171,8 @@ export class NodeManager {
   }
   async restoreBackupNodes(cameUpNodes) {
     try {
-      console.log(`這是CameUpNodes${cameUpNodes}`);
-
       // 同步最新的主節點信息
       const primaryNodeUrl = this.primaryToBackupMap.get(cameUpNodes); // 假設第一個主節點URL
-
-      console.log(`這是PrimaryNodeURL: ${primaryNodeUrl}`);
-
       try {
         const response = await axios.get(`${primaryNodeUrl}/status`);
 
@@ -228,7 +208,6 @@ export class NodeManager {
               const { primaryNodes } = response.data;
               console.log(primaryNodes);
               this.nodes = primaryNodes;
-              console.log(`這是重新fetch檔案後的this.nodes:${this.nodes}`);
               console.log(`success to update this.nodes from ${node}`);
               if (!this.nodes.includes(cameUpNodes)) {
                 this.nodes.push(cameUpNodes);
@@ -249,7 +228,6 @@ export class NodeManager {
   }
   //When Node alive notify  other nodes in cluster to make each node can synchronize information
   async sendNodeCameUpNotification(node) {
-    console.log(`這是notify${node}`);
     for (const targetNode of this.allNodes) {
       if (targetNode !== node) {
         try {
@@ -286,9 +264,6 @@ export class NodeManager {
   }
 
   sendNodeStatusToNodeWatcher() {
-    // this.backupNodes = this.backupNodes.filter((node) => {
-    //   !this.nodes.includes(node);
-    // });
     this.backupNodes = this.allNodes.filter(
       (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
     );

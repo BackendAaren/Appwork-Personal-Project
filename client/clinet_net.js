@@ -180,27 +180,27 @@ setInterval(async () => {
 // enqueueMessages("channel3", 1);
 // enqueueMessages("channel4", 1);
 
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 300);
-setInterval(() => {
-  client.enqueueMessage("channel2", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
-setInterval(() => {
-  client.enqueueMessage("channel3", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
-setInterval(() => {
-  client.enqueueMessage("channel4", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel1", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 300);
+// setInterval(() => {
+//   client.enqueueMessage("channel2", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel3", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel4", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
