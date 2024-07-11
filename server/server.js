@@ -51,9 +51,6 @@ app.post("/enqueue/:channel", async (req, res) => {
 
     const node = nodeManager.getNodeForKey(channel);
     const message = new MessageType(channel, messageType, payload, node);
-    // console.log(
-    //   `This work node from now ${channel} and ${node} message is ${message}`
-    // );
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
     if (node === process.env.SERVER_HOST) {

@@ -141,19 +141,14 @@ export class NodeManager {
   }
 
   async promoteBackupNodes(downNodes) {
-    // console.log(`這是downNodes:${downNodes}`);
     for (const node of downNodes) {
-      // console.log(`這是Node:${node}`);
       const backupNode = this.primaryToBackupMap.get(node);
-      // console.log(`這是backup ${backupNode}`);
-      // console.log(`這是backuppppp ${backupNode}`);
       if (backupNode && !this.nodes.includes(backupNode)) {
         //這一行邏輯怪怪的
         if (this.aliveNodes.has(backupNode)) {
           const index = this.nodes.indexOf(node);
           this.nodes.splice(index, 0, backupNode);
         }
-        // console.log(`這是nodeManager的backupNode:${backupNode}`);
         if (this.aliveNodes.has(backupNode)) {
           await axios.post(`${backupNode}/backupNodeRecoverMessage`);
         }
