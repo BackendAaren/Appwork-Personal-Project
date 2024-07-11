@@ -14,7 +14,7 @@ import { NodeManager } from "./controller/nodeManager.js";
 const __filename = fileURLToPath(import.meta.url);
 
 // Start server
-const PORT = 3005;
+const PORT = 3002;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -189,27 +189,6 @@ app.post(`/nodeCameUp`, (req, res) => {
   const { node } = req.body;
   nodeManager.receiveNodeCameUpNotification(node);
   res.send(200);
-});
-
-app.get("/watcher/operationSystemStatus", async (req, res) => {
-  const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
-    return cpuPercentage;
-  });
-
-  const memUsage = await osUtils.mem.info().then((memInfo) => {
-    console.log("Total Memory:", memInfo.totalMemMb, "MB");
-    console.log("Free Memory:", memInfo.freeMemMb, "MB");
-    console.log("Used Memory:", memInfo.usedMemMb, "MB");
-    return memInfo;
-  });
-
-  const totalStatus = messageQueue.getStats();
-
-  res.status(200).send({ cpuUsage, memUsage, totalStatus });
-});
-
-app.get("/watcher.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "view", "public", "watcher.html"));
 });
 
 // Create HTTP server and attach express app to it
