@@ -50,6 +50,22 @@ export class NodeManager {
     }, new Map());
   }
 
+  updateNode(newNodes, newBackupNodes) {
+    this.nodes = newNodes;
+    this.backupNodes = newBackupNodes;
+    this.allNodes = [...newNodes, ...newBackupNodes];
+
+    this.aliveNodes = new Set();
+    this.primaryExecuteNodes = [];
+    this.workAssignments = {};
+    this.primaryToBackupMap = this.createPrimaryToBackupMap(
+      newNodes,
+      newBackupNodes
+    );
+    this.primaryNodesSet = new Set(newNodes); // 新增主節點集合
+    this.wentDownNodes = {};
+  }
+
   hashNode(key) {
     return crc.crc16(key);
   }

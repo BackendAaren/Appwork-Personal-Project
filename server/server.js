@@ -23,10 +23,11 @@ app.use(bodyParser.json());
 dotenv.config();
 //設定port number
 const PORT = process.env.PORT;
+const host = process.env.SERVER_HOST;
 // Initialize MessageQueue instance
 //initialize nodeManager
-const nodes = process.env.NODE_PRIMARYNODES.split(",");
-const backupNodes = process.env.NODE_BACKUPNODES.split(",");
+let nodes = [host];
+let backupNodes = [];
 const replicationFactor = 3;
 let nodeManager = new NodeManager(
   nodes,
@@ -34,11 +35,33 @@ let nodeManager = new NodeManager(
   replicationFactor,
   process.env.SERVER_HOST
 );
-const messageQueue = new MessageQueue(
-  process.env.SERVER_HOST,
-  process.env.PORT
-);
-const messageQueues = {};
+const messageQueue = new MessageQueue(host, PORT);
+
+//Receive and setting nodes&backupNods for cluster node
+
+app.post("/set-nodes", (req, res) => {
+  try {
+    const { nodes: newNodes, backupNodes: newBackupNodes } = req.body;
+    console.log("This is", newNodes);
+    console.log(newBackupNodes);
+    if (!newNodes || !newBackupNodes) {
+      return res
+        .status(400)
+        .json({ error: "nodes and backupNodes are requires" });
+    }
+
+    nodes = newNodes;
+    backupNodes = newBackupNodes;
+    nodeManager.updateNode(newNodes, newBackupNodes);
+    res
+      .status(200)
+      .json({ message: "Nodes and backup nodes update successfully " });
+  } catch (error) {
+    console.error("Sets nodes error", error);
+    res.status(500).json({ error: "Internal server error", details: error });
+  }
+});
+
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
   try {
@@ -70,8 +93,8 @@ app.post("/enqueue/:channel", async (req, res) => {
 
     res.status(200).json({ message: "Message enqueue successfully" });
   } catch (error) {
-    console.error("Enqueue error:", error);
-    res.status(500).json({ error: "Internal server error", details: error });
+    console.error("Enqueue error:");
+    res.status(500).json({ error: "Internal server error" });
   }
   console.log(messageQueue.getStats());
 });
