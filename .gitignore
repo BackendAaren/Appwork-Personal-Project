@@ -8,3 +8,6 @@ certificate.crt
 private.key
 ca_bundle.crt
 .vscode
+.dockerignore
+Dockerfile
+docker-compose.yml

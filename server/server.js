@@ -21,6 +21,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 //use dotenv
 dotenv.config();
+//設定port number
+const PORT = process.env.PORT;
 // Initialize MessageQueue instance
 //initialize nodeManager
 const nodes = process.env.NODE_PRIMARYNODES.split(",");
@@ -188,6 +190,6 @@ wss.on("connection", (ws) => {
   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
 });
 
-server.listen(process.env.PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on ${process.env.SERVER_HOST}`);
 });
