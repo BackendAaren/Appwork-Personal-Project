@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 // Import MessageQueue and MessageType classes
 import { MessageQueue, MessageType } from "./controller/messageQueue.js";
 import { NodeManager } from "./controller/nodeManager.js";
+import cluster from "cluster";
 // 取得目前模組的檔案路徑
 const __filename = fileURLToPath(import.meta.url);
 // 從檔案路徑中取得目錄路徑
@@ -28,13 +29,14 @@ const host = process.env.SERVER_HOST;
 //initialize nodeManager
 let nodes = [host];
 let backupNodes = [];
+let allClusterNodes = [...nodes, ...backupNodes];
 const replicationFactor = 3;
 let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
 const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
 
 //Receive and setting nodes&backupNods for cluster node
 
-app.post("/set-nodes", (req, res) => {
+app.post("/set-nodes", async (req, res) => {
   try {
     const { nodes: newNodes, backupNodes: newBackupNodes } = req.body;
     console.log("This is", newNodes);
@@ -44,9 +46,22 @@ app.post("/set-nodes", (req, res) => {
         .status(400)
         .json({ error: "nodes and backupNodes are requires" });
     }
+    const clusterNodes = [...newNodes, ...newBackupNodes];
+    allClusterNodes = [...newNodes, newBackupNodes];
+    console.log("這是clusterNodes", clusterNodes);
+    console.log("這是allClusterNodes", allClusterNodes);
 
+    for (const clusterNode of clusterNodes) {
+      if (clusterNode !== host && !allClusterNodes.includes(clusterNode)) {
+        await axios.post(`${clusterNode}/set-nodes`, {
+          nodes: newNodes,
+          backupNodes: newBackupNodes,
+        });
+      }
+    }
     nodes = newNodes;
     backupNodes = newBackupNodes;
+    // allClusterNodes = [...newNodes, newBackupNodes];
     nodeManager.updateNode(newNodes, newBackupNodes, process.env.SERVER_HOST);
     res
       .status(200)

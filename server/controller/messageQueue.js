@@ -54,8 +54,8 @@ export class MessageQueue {
       this.calculateInboundRates();
       this.calculateOutboundRates();
       this.broadcastMonitorStatus();
-      // this.sendStatsToWatcher();
-      // this.calculateOsUSage();
+      this.sendStatsToWatcher();
+      this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
@@ -100,8 +100,6 @@ export class MessageQueue {
           .find({ status: "unprocessed", channel: `${channel}` })
           .toArray();
         if (messages.length > 0) {
-          // console.log("message recovering....");
-          // console.log(messages);
           const now = Date.now();
           this.channels[channel] = messages.map(
             (msg) =>
