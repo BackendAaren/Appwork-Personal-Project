@@ -29,13 +29,8 @@ const host = process.env.SERVER_HOST;
 let nodes = [host];
 let backupNodes = [];
 const replicationFactor = 3;
-let nodeManager = new NodeManager(
-  nodes,
-  backupNodes,
-  replicationFactor,
-  process.env.SERVER_HOST
-);
-const messageQueue = new MessageQueue(host, PORT);
+let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
+const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
 
 //Receive and setting nodes&backupNods for cluster node
 
@@ -52,7 +47,7 @@ app.post("/set-nodes", (req, res) => {
 
     nodes = newNodes;
     backupNodes = newBackupNodes;
-    nodeManager.updateNode(newNodes, newBackupNodes);
+    nodeManager.updateNode(newNodes, newBackupNodes, process.env.SERVER_HOST);
     res
       .status(200)
       .json({ message: "Nodes and backup nodes update successfully " });

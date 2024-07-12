@@ -8,7 +8,7 @@ export class NodeManager {
     this.backupNodes = backupNodes;
     this.allNodes = [...nodes, ...backupNodes];
     this.replicationFactor = replicationFactor;
-    this.aliveNodes = new Set();
+    this.aliveNodes = new Set([port]);
     this.primaryExecuteNodes = [];
     this.workAssignments = {};
     this.primaryToBackupMap = this.createPrimaryToBackupMap(nodes, backupNodes);
@@ -16,6 +16,8 @@ export class NodeManager {
     this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
+    this.newNodes = nodes;
+    this.newBackup = backupNodes;
 
     this.wsClient = new WebSocket("ws://localhost:3008", {
       headers: { source: port },
@@ -50,10 +52,12 @@ export class NodeManager {
     }, new Map());
   }
 
-  updateNode(newNodes, newBackupNodes) {
+  updateNode(newNodes, newBackupNodes, port) {
     this.nodes = newNodes;
     this.backupNodes = newBackupNodes;
     this.allNodes = [...newNodes, ...newBackupNodes];
+    this.newNodes = newNodes;
+    this.newBackup = newBackupNodes;
 
     this.aliveNodes = new Set();
     this.primaryExecuteNodes = [];
@@ -64,6 +68,7 @@ export class NodeManager {
     );
     this.primaryNodesSet = new Set(newNodes); // 新增主節點集合
     this.wentDownNodes = {};
+    this.sendNodeCameUpNotification(port);
   }
 
   hashNode(key) {
@@ -130,8 +135,12 @@ export class NodeManager {
 
   checkNodesStatus() {
     setInterval(async () => {
+      const previousWentDownNodes = [...this.allNodes].filter(
+        (node) => !this.aliveNodes.has(node)
+      );
+      console.log();
       const aliveNodes = new Set();
-
+      console.log("這是previousWenDownNodes", previousWentDownNodes);
       for (const node of this.allNodes) {
         try {
           const response = await axios.get(`${node}/health`);
@@ -145,6 +154,25 @@ export class NodeManager {
       const nodesWentDown = [...this.allNodes].filter(
         (node) => !aliveNodes.has(node)
       );
+      console.log("這是NodesWentDown", nodesWentDown);
+
+      const newCameUpNodes = previousWentDownNodes.filter(
+        (node) => !nodesWentDown.includes(node)
+      );
+      console.log("This is newCameUp", newCameUpNodes);
+
+      if (newCameUpNodes.length > 0) {
+        for (const newCameUpNode of newCameUpNodes) {
+          try {
+            await axios.post(`${newCameUpNode}/set-nodes`, {
+              nodes: this.newNodes,
+              backupNodes: this.newBackup,
+            });
+          } catch {
+            console.error(`Failed to use set node`);
+          }
+        }
+      }
 
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
@@ -186,6 +214,7 @@ export class NodeManager {
     );
   }
   async restoreBackupNodes(cameUpNodes) {
+    console.log(`這是nodesCameUp ${cameUpNodes}`);
     try {
       // 同步最新的主節點信息
       const primaryNodeUrl = this.primaryToBackupMap.get(cameUpNodes); // 假設第一個主節點URL
