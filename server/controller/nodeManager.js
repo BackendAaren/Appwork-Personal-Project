@@ -1,6 +1,9 @@
 import axios from "axios";
 import crc from "crc";
 import { WebSocket } from "ws";
+import dotenv from "dotenv";
+dotenv.config();
+const websocketHost = process.env.WATCHER_SERVER;
 
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
@@ -19,7 +22,7 @@ export class NodeManager {
     this.newNodes = nodes;
     this.newBackup = backupNodes;
 
-    this.wsClient = new WebSocket("ws://localhost:3008", {
+    this.wsClient = new WebSocket(websocketHost, {
       headers: { source: port },
     });
     this.wsClient.on("open", () => {

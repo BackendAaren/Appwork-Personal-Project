@@ -32,7 +32,7 @@ export class MessageQueue {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
-    this.dbUrl = "mongodb://localhost:27017";
+    this.dbUrl = process.env.MONGODB_SERVER;
     this.dbName = `LionMQ_storage${portNum}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
