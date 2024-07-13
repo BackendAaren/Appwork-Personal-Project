@@ -46,19 +46,19 @@ app.post("/set-nodes", async (req, res) => {
         .status(400)
         .json({ error: "nodes and backupNodes are requires" });
     }
-    const clusterNodes = [...newNodes, ...newBackupNodes];
-    allClusterNodes = [...newNodes, newBackupNodes];
-    console.log("這是clusterNodes", clusterNodes);
-    console.log("這是allClusterNodes", allClusterNodes);
+    // const clusterNodes = [...newNodes, ...newBackupNodes];
+    // allClusterNodes = [...newNodes, newBackupNodes];
+    // console.log("這是clusterNodes", clusterNodes);
+    // console.log("這是allClusterNodes", allClusterNodes);
 
-    for (const clusterNode of clusterNodes) {
-      if (clusterNode !== host && !allClusterNodes.includes(clusterNode)) {
-        await axios.post(`${clusterNode}/set-nodes`, {
-          nodes: newNodes,
-          backupNodes: newBackupNodes,
-        });
-      }
-    }
+    // for (const clusterNode of clusterNodes) {
+    //   if (clusterNode !== host && !allClusterNodes.includes(clusterNode)) {
+    //     await axios.post(`${clusterNode}/set-nodes`, {
+    //       nodes: newNodes,
+    //       backupNodes: newBackupNodes,
+    //     });
+    //   }
+    // }
     nodes = newNodes;
     backupNodes = newBackupNodes;
     // allClusterNodes = [...newNodes, newBackupNodes];

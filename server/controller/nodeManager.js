@@ -62,7 +62,7 @@ export class NodeManager {
     this.newNodes = newNodes;
     this.newBackup = newBackupNodes;
 
-    this.aliveNodes = new Set();
+    this.aliveNodes = new Set([port]);
     this.primaryExecuteNodes = [];
     this.workAssignments = {};
     this.primaryToBackupMap = this.createPrimaryToBackupMap(
@@ -138,6 +138,7 @@ export class NodeManager {
 
   checkNodesStatus() {
     setInterval(async () => {
+      console.log("這是this.aliveNodes:", [...this.aliveNodes]);
       const previousWentDownNodes = [...this.allNodes].filter(
         (node) => !this.aliveNodes.has(node)
       );
@@ -184,6 +185,9 @@ export class NodeManager {
       console.log(this.nodes);
 
       this.aliveNodes = aliveNodes; //update aliveNodes集合
+      this.wentDownNodes = this.allNodes.filter((node) =>
+        nodesWentDown.includes(node)
+      );
     }, 6000);
   }
 
@@ -315,9 +319,9 @@ export class NodeManager {
     this.backupNodes = this.allNodes.filter(
       (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
     );
-    this.wentDownNodes = this.allNodes.filter(
-      (node) => !this.aliveNodes.has(node)
-    );
+    // this.wentDownNodes = this.allNodes.filter(
+    //   (node) => !this.aliveNodes.has(node)
+    // );
     return {
       primaryNodes: this.nodes,
       backupNodes: this.backupNodes,

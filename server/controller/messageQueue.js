@@ -55,7 +55,7 @@ export class MessageQueue {
       this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
-      this.calculateOsUSage();
+      // this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
     this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
     this.recoverMessagesFromMongoDB();
