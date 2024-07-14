@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const websocketHost = process.env.WATCHER_SERVER;
+const dbDocumentName = process.env.MONGODB_DOCUMENT;
 export class MessageType {
   constructor(
     channel,
@@ -34,7 +35,7 @@ export class MessageQueue {
     this.waiting = {};
     this.monitorClients = new Set();
     // this.dbUrl = uri;
-    this.dbName = `LionMQ_storage${portNum}`;
+    this.dbName = `LionMQ_storage${dbDocumentName}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
 

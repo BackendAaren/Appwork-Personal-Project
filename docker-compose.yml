@@ -10,6 +10,7 @@ services:
       - SERVER_HOST=http://10.101.4.132:3002
       - WATCHER_SERVER=ws://10.101.4.132:3008
       - MONGODB_SERVER=mongodb+srv://Aaren:3030416@cluster0.mollxex.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0mongodb://mongo:27017
+      - MONGODB_DOCUMENT=LionMQ_node1
     depends_on:
       - mongo
     volumes:
