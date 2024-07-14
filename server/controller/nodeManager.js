@@ -185,6 +185,11 @@ export class NodeManager {
           }
         }
       }
+      if (this.notified === false) {
+        for (const hostNode of newCameUpNodes) {
+          this.restoreBackupNodes(hostNode);
+        }
+      }
       this.notified = true;
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
