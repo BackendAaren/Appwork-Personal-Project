@@ -72,6 +72,7 @@ export class NodeManager {
     this.wentDownNodes = {};
     this.newNodes = newNodes;
     this.newBackup = newBackupNodes;
+    this.notified = false;
 
     // 重新檢查節點狀態
     this.checkNodesStatus();
@@ -165,24 +166,26 @@ export class NodeManager {
       );
       console.log("這是NodesWentDown", nodesWentDown);
 
-      // const newCameUpNodes = previousWentDownNodes.filter(
-      //   (node) => !nodesWentDown.includes(node)
-      // );
-      // console.log("This is newCameUp", newCameUpNodes);
+      const newCameUpNodes = previousWentDownNodes.filter(
+        (node) => !nodesWentDown.includes(node)
+      );
+      console.log("This is newCameUp", newCameUpNodes);
 
-      // if (newCameUpNodes.length > 0) {
-      //   for (const newCameUpNode of newCameUpNodes) {
-      //     try {
-      //       await axios.post(`${newCameUpNode}/set-nodes`, {
-      //         nodes: this.newNodes,
-      //         backupNodes: this.newBackup,
-      //       });
-      //     } catch {
-      //       console.error(`Failed to use set node`);
-      //     }
-      //   }
-      // }
-
+      if (newCameUpNodes.length > 0 && this.notified === true) {
+        console.log("FSFASFASDFAFEWFSDASDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+        for (const newCameUpNode of newCameUpNodes) {
+          try {
+            await axios.post(`${newCameUpNode}/set_clusterNodes`, {
+              nodes: this.newNodes,
+              backupNodes: this.newBackup,
+            });
+            this.sendNodeCameUpNotification(newCameUpNode);
+          } catch {
+            console.error(`Failed to use set node`);
+          }
+        }
+      }
+      this.notified = true;
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
       }
