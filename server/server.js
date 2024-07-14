@@ -46,29 +46,54 @@ app.post("/set-nodes", async (req, res) => {
         .status(400)
         .json({ error: "nodes and backupNodes are requires" });
     }
-    // const clusterNodes = [...newNodes, ...newBackupNodes];
-    // allClusterNodes = [...newNodes, newBackupNodes];
-    // console.log("這是clusterNodes", clusterNodes);
-    // console.log("這是allClusterNodes", allClusterNodes);
+    const clusterNodes = [...newNodes, ...newBackupNodes];
+    allClusterNodes = [...newNodes, ...newBackupNodes];
+    console.log("這是clusterNodes", clusterNodes);
+    console.log("這是allClusterNodes", allClusterNodes);
 
-    // for (const clusterNode of clusterNodes) {
-    //   if (clusterNode !== host && !allClusterNodes.includes(clusterNode)) {
-    //     await axios.post(`${clusterNode}/set-nodes`, {
-    //       nodes: newNodes,
-    //       backupNodes: newBackupNodes,
-    //     });
-    //   }
-    // }
+    for (const clusterNode of clusterNodes) {
+      if (clusterNode !== host) {
+        try {
+          await axios.post(`${clusterNode}/set_clusterNodes`, {
+            nodes: newNodes,
+            backupNodes: newBackupNodes,
+          });
+        } catch (error) {
+          console.error(`${clusterNode} is not alive`);
+        }
+      }
+    }
     nodes = newNodes;
     backupNodes = newBackupNodes;
     // allClusterNodes = [...newNodes, newBackupNodes];
-    nodeManager.updateNode(newNodes, newBackupNodes, process.env.SERVER_HOST);
+    nodeManager.updateNode(nodes, backupNodes, process.env.SERVER_HOST);
     res
       .status(200)
       .json({ message: "Nodes and backup nodes update successfully " });
   } catch (error) {
     console.error("Sets nodes error", error);
     res.status(500).json({ error: "Internal server error", details: error });
+  }
+});
+
+app.post("/set_clusterNodes", async (req, res) => {
+  try {
+    const { nodes: newNodes, backupNodes: newBackupNodes } = req.body;
+
+    if (!newNodes || !newBackupNodes) {
+      return res
+        .status(400)
+        .json({ error: "nodes and backupNodes are requires" });
+    }
+    nodes = newNodes;
+    backupNodes = newBackupNodes;
+    nodeManager.updateNode(nodes, backupNodes);
+    res
+      .status(200)
+      .json({ message: "Nodes and backup nodes update successfully " });
+  } catch (error) {
+    console.error("Failed to update backupNodes");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

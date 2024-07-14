@@ -56,12 +56,11 @@ export class NodeManager {
   }
 
   updateNode(newNodes, newBackupNodes, port) {
+    // 重置所有屬性
     this.nodes = newNodes;
     this.backupNodes = newBackupNodes;
     this.allNodes = [...newNodes, ...newBackupNodes];
-    this.newNodes = newNodes;
-    this.newBackup = newBackupNodes;
-
+    this.replicationFactor = this.replicationFactor; // 保留原始值
     this.aliveNodes = new Set([port]);
     this.primaryExecuteNodes = [];
     this.workAssignments = {};
@@ -69,9 +68,15 @@ export class NodeManager {
       newNodes,
       newBackupNodes
     );
-    this.primaryNodesSet = new Set(newNodes); // 新增主節點集合
+    this.primaryNodesSet = new Set(newNodes);
     this.wentDownNodes = {};
-    this.sendNodeCameUpNotification(port);
+    this.newNodes = newNodes;
+    this.newBackup = newBackupNodes;
+
+    // 重新檢查節點狀態
+    this.checkNodesStatus();
+    // this.sendNodeCameUpNotification(port);
+    console.log("這是新This.allnodes", this.allNodes);
   }
 
   hashNode(key) {
@@ -160,23 +165,23 @@ export class NodeManager {
       );
       console.log("這是NodesWentDown", nodesWentDown);
 
-      const newCameUpNodes = previousWentDownNodes.filter(
-        (node) => !nodesWentDown.includes(node)
-      );
-      console.log("This is newCameUp", newCameUpNodes);
+      // const newCameUpNodes = previousWentDownNodes.filter(
+      //   (node) => !nodesWentDown.includes(node)
+      // );
+      // console.log("This is newCameUp", newCameUpNodes);
 
-      if (newCameUpNodes.length > 0) {
-        for (const newCameUpNode of newCameUpNodes) {
-          try {
-            await axios.post(`${newCameUpNode}/set-nodes`, {
-              nodes: this.newNodes,
-              backupNodes: this.newBackup,
-            });
-          } catch {
-            console.error(`Failed to use set node`);
-          }
-        }
-      }
+      // if (newCameUpNodes.length > 0) {
+      //   for (const newCameUpNode of newCameUpNodes) {
+      //     try {
+      //       await axios.post(`${newCameUpNode}/set-nodes`, {
+      //         nodes: this.newNodes,
+      //         backupNodes: this.newBackup,
+      //       });
+      //     } catch {
+      //       console.error(`Failed to use set node`);
+      //     }
+      //   }
+      // }
 
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
