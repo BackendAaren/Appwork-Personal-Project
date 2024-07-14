@@ -4,6 +4,7 @@ import { MongoDB } from "../model/mongodb.js";
 import osUtils from "node-os-utils";
 import dotenv from "dotenv";
 dotenv.config();
+
 const websocketHost = process.env.WATCHER_SERVER;
 export class MessageType {
   constructor(
@@ -32,7 +33,7 @@ export class MessageQueue {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
-    this.dbUrl = process.env.MONGODB_SERVER;
+    // this.dbUrl = uri;
     this.dbName = `LionMQ_storage${portNum}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
@@ -55,9 +56,9 @@ export class MessageQueue {
       this.calculateOutboundRates();
       this.broadcastMonitorStatus();
       this.sendStatsToWatcher();
-      // this.calculateOsUSage();
+      this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
-    this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
+    this.mongoDB = new MongoDB(this.dbName);
     this.recoverMessagesFromMongoDB();
     // this.mongoDB.connect();
     process.on("SIGINT", async () => {
