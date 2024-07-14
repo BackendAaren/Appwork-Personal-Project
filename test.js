@@ -90,7 +90,16 @@
 
 // console.log(getSum(10));
 
-let arr = [1, 2, 3, 4, 5];
-console.log(arr);
-arr.push(6);
-console.log(arr);
+// let arr = [1, 2, 3, 4, 5];
+// console.log(arr);
+// arr.push(6);
+// console.log(arr);
+import dotenv from "dotenv";
+dotenv.config();
+let arr = "1,2,3,4,5,6,7";
+const clusterNodes = process.env.NODE_PRIMARYNODES.split(",");
+// const backupNodes = process.env.BACKUP_NODES.split(',');
+
+console.log("Cluster Nodes:", clusterNodes);
+console.log(typeof process.env.SERVER_HOST);
+// console.log('Backup Nodes:', backupNodes);

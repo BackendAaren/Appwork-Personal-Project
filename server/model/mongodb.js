@@ -1,19 +1,31 @@
-import { MongoClient } from "mongodb";
+import { MongoClient, ServerApiVersion } from "mongodb";
+import dotenv from "dotenv";
 import { connect } from "net";
-
+dotenv.config();
+const uri = process.env.MONGODB_SERVER;
 //Connect URL
 export class MongoDB {
-  constructor(url, dbName) {
-    this.url = url;
+  constructor(dbName) {
+    this.url = uri;
     this.dbName = dbName;
-    this.client = new MongoClient(this.url);
+    this.client = new MongoClient(this.url, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+    });
     this.db = null;
   }
   async connect() {
     if (!this.db) {
-      await this.client.connect();
-      console.log("Connect successfully to MongoDB");
-      this.db = this.client.db(this.dbName);
+      try {
+        await this.client.connect();
+        console.log("Connect successfully to MongoDB");
+        this.db = this.client.db(this.dbName);
+      } catch (error) {
+        console.error("Failed to connect MongoDB", error);
+      }
     }
     return this.db;
   }

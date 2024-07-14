@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-import os from "os";
 import { WebSocket } from "ws";
 import { MongoDB } from "../model/mongodb.js";
 import osUtils from "node-os-utils";
-import { channel } from "diagnostics_channel";
-import { cpuUsage } from "process";
+import dotenv from "dotenv";
+dotenv.config();
+
+const websocketHost = process.env.WATCHER_SERVER;
+const dbDocumentName = process.env.MONGODB_DOCUMENT;
 export class MessageType {
   constructor(
     channel,
@@ -32,8 +34,8 @@ export class MessageQueue {
     this.channels = {};
     this.waiting = {};
     this.monitorClients = new Set();
-    this.dbUrl = "mongodb://localhost:27017";
-    this.dbName = `RabbitMQ_storage${portNum}`;
+    // this.dbUrl = uri;
+    this.dbName = `LionMQ_storage${dbDocumentName}`;
     this.maxRequeueAttempt = 5;
     this.port = port;
 
@@ -57,14 +59,14 @@ export class MessageQueue {
       this.sendStatsToWatcher();
       this.calculateOsUSage();
     }, 3000); // 每秒執行一次計算
-    this.mongoDB = new MongoDB(this.dbUrl, this.dbName);
+    this.mongoDB = new MongoDB(this.dbName);
     this.recoverMessagesFromMongoDB();
     // this.mongoDB.connect();
     process.on("SIGINT", async () => {
       await this.mongoDB.close();
       process.exit();
     });
-    this.wsClient = new WebSocket("ws://localhost:3008", {
+    this.wsClient = new WebSocket(websocketHost, {
       headers: { source: this.port },
     });
     this.wsClient.on("open", () => {
@@ -100,8 +102,6 @@ export class MessageQueue {
           .find({ status: "unprocessed", channel: `${channel}` })
           .toArray();
         if (messages.length > 0) {
-          // console.log("message recovering....");
-          // console.log(messages);
           const now = Date.now();
           this.channels[channel] = messages.map(
             (msg) =>

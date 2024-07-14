@@ -1,6 +1,9 @@
 import axios from "axios";
 import crc from "crc";
 import { WebSocket } from "ws";
+import dotenv from "dotenv";
+dotenv.config();
+const websocketHost = process.env.WATCHER_SERVER;
 
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
@@ -8,7 +11,7 @@ export class NodeManager {
     this.backupNodes = backupNodes;
     this.allNodes = [...nodes, ...backupNodes];
     this.replicationFactor = replicationFactor;
-    this.aliveNodes = new Set();
+    this.aliveNodes = new Set([port]);
     this.primaryExecuteNodes = [];
     this.workAssignments = {};
     this.primaryToBackupMap = this.createPrimaryToBackupMap(nodes, backupNodes);
@@ -16,8 +19,10 @@ export class NodeManager {
     this.wentDownNodes = {};
     this.checkNodesStatus();
     this.sendNodeCameUpNotification(port);
+    this.newNodes = nodes;
+    this.newBackup = backupNodes;
 
-    this.wsClient = new WebSocket("ws://localhost:3008", {
+    this.wsClient = new WebSocket(websocketHost, {
       headers: { source: port },
     });
     this.wsClient.on("open", () => {
@@ -48,6 +53,31 @@ export class NodeManager {
       map.set(backupNodes[index], node);
       return map;
     }, new Map());
+  }
+
+  updateNode(newNodes, newBackupNodes, port) {
+    // 重置所有屬性
+    this.nodes = newNodes;
+    this.backupNodes = newBackupNodes;
+    this.allNodes = [...newNodes, ...newBackupNodes];
+    this.replicationFactor = this.replicationFactor; // 保留原始值
+    this.aliveNodes = new Set([port]);
+    this.primaryExecuteNodes = [];
+    this.workAssignments = {};
+    this.primaryToBackupMap = this.createPrimaryToBackupMap(
+      newNodes,
+      newBackupNodes
+    );
+    this.primaryNodesSet = new Set(newNodes);
+    this.wentDownNodes = {};
+    this.newNodes = newNodes;
+    this.newBackup = newBackupNodes;
+    this.notified = false;
+
+    // 重新檢查節點狀態
+    this.checkNodesStatus();
+    // this.sendNodeCameUpNotification(port);
+    console.log("這是新This.allnodes", this.allNodes);
   }
 
   hashNode(key) {
@@ -114,8 +144,13 @@ export class NodeManager {
 
   checkNodesStatus() {
     setInterval(async () => {
+      console.log("這是this.aliveNodes:", [...this.aliveNodes]);
+      const previousWentDownNodes = [...this.allNodes].filter(
+        (node) => !this.aliveNodes.has(node)
+      );
+      console.log();
       const aliveNodes = new Set();
-
+      console.log("這是previousWenDownNodes", previousWentDownNodes);
       for (const node of this.allNodes) {
         try {
           const response = await axios.get(`${node}/health`);
@@ -129,55 +164,69 @@ export class NodeManager {
       const nodesWentDown = [...this.allNodes].filter(
         (node) => !aliveNodes.has(node)
       );
+      console.log("這是NodesWentDown", nodesWentDown);
 
+      const newCameUpNodes = previousWentDownNodes.filter(
+        (node) => !nodesWentDown.includes(node)
+      );
+      console.log("This is newCameUp", newCameUpNodes);
+
+      if (newCameUpNodes.length > 0 && this.notified === true) {
+        console.log("FSFASFASDFAFEWFSDASDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+        for (const newCameUpNode of newCameUpNodes) {
+          try {
+            await axios.post(`${newCameUpNode}/set_clusterNodes`, {
+              nodes: this.newNodes,
+              backupNodes: this.newBackup,
+            });
+            this.sendNodeCameUpNotification(newCameUpNode);
+          } catch {
+            console.error(`Failed to use set node`);
+          }
+        }
+      }
+      if (this.notified === false) {
+        for (const hostNode of newCameUpNodes) {
+          this.restoreBackupNodes(hostNode);
+        }
+      }
+      this.notified = true;
       if (nodesWentDown.length > 0) {
         this.promoteBackupNodes(nodesWentDown);
       }
-
-      // console.log(`這是this.aliveNodes${this.aliveNodes}`);
-      // console.log(`這是aliveNodes${[...aliveNodes]}`);
-      // console.log(this.aliveNodes);
       console.log(`這是nodesWentDown:${nodesWentDown}`);
-
-      // console.log(`這是this.backupNodes:${this.backupNodes}`);
       console.log(this.nodes);
-      // console.log(this.primaryToBackupMap);
-      // // console.log(this.allNodes);
 
       this.aliveNodes = aliveNodes; //update aliveNodes集合
+      this.wentDownNodes = this.allNodes.filter((node) =>
+        nodesWentDown.includes(node)
+      );
     }, 6000);
   }
 
   async promoteBackupNodes(downNodes) {
-    // console.log(`這是downNodes:${downNodes}`);
     for (const node of downNodes) {
-      // console.log(`這是Node:${node}`);
       const backupNode = this.primaryToBackupMap.get(node);
-      // console.log(`這是backup ${backupNode}`);
-      // console.log(`這是backuppppp ${backupNode}`);
       if (backupNode && !this.nodes.includes(backupNode)) {
         //這一行邏輯怪怪的
         if (this.aliveNodes.has(backupNode)) {
           const index = this.nodes.indexOf(node);
-          console.log(`這是所有死掉的節點Node:${downNodes}`);
-          console.log(`這是死掉前的this.nodes${this.nodes}`);
-          console.log(`這是死掉的主節點Node:${node}`);
-          console.log(`這是死掉的備用節點Node:${backupNode}`);
-          console.log(`這是節點Index:${index}`);
-          // this.nodes.push(backupNode);
-          console.log(`這是重生的this.nodes${this.nodes}`);
-          this.nodes.splice(index, 0, backupNode);
+          this.nodes.splice(index, 1, backupNode);
         }
         console.log(`這是nodeManager的backupNode:${backupNode}`);
+        console.log(`這是node manager 的 aliveNodes : ${this.aliveNodes}`);
         if (this.aliveNodes.has(backupNode)) {
-          await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+          try {
+            console.log(`${backupNode}:我進來backup了`);
+            await axios.post(`${backupNode}/backupNodeRecoverMessage`);
+          } catch {
+            console.error(`Failed to recover data from ${backupNode}`);
+          }
         }
         // this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
         this.backupNodes = this.backupNodes.filter((bn) => bn != backupNode); //更新backupNodes節點列表
       }
     }
-    // console.log(`這是Promote的backupNodes:${backupNode}`);
-    // console.log(`這是Promote的nodes:${node}`);
     console.log(`這是Promote的this.nodes:${this.nodes}`);
     this.nodes = this.nodes.filter((node) => !downNodes.includes(node));
     this.backupNodes = this.backupNodes.filter(
@@ -185,14 +234,10 @@ export class NodeManager {
     );
   }
   async restoreBackupNodes(cameUpNodes) {
+    console.log(`這是nodesCameUp ${cameUpNodes}`);
     try {
-      console.log(`這是CameUpNodes${cameUpNodes}`);
-
       // 同步最新的主節點信息
       const primaryNodeUrl = this.primaryToBackupMap.get(cameUpNodes); // 假設第一個主節點URL
-
-      console.log(`這是PrimaryNodeURL: ${primaryNodeUrl}`);
-
       try {
         const response = await axios.get(`${primaryNodeUrl}/status`);
 
@@ -228,7 +273,6 @@ export class NodeManager {
               const { primaryNodes } = response.data;
               console.log(primaryNodes);
               this.nodes = primaryNodes;
-              console.log(`這是重新fetch檔案後的this.nodes:${this.nodes}`);
               console.log(`success to update this.nodes from ${node}`);
               if (!this.nodes.includes(cameUpNodes)) {
                 this.nodes.push(cameUpNodes);
@@ -249,7 +293,6 @@ export class NodeManager {
   }
   //When Node alive notify  other nodes in cluster to make each node can synchronize information
   async sendNodeCameUpNotification(node) {
-    console.log(`這是notify${node}`);
     for (const targetNode of this.allNodes) {
       if (targetNode !== node) {
         try {
@@ -286,15 +329,12 @@ export class NodeManager {
   }
 
   sendNodeStatusToNodeWatcher() {
-    // this.backupNodes = this.backupNodes.filter((node) => {
-    //   !this.nodes.includes(node);
-    // });
     this.backupNodes = this.allNodes.filter(
       (node) => !this.nodes.includes(node) && this.aliveNodes.has(node)
     );
-    this.wentDownNodes = this.allNodes.filter(
-      (node) => !this.aliveNodes.has(node)
-    );
+    // this.wentDownNodes = this.allNodes.filter(
+    //   (node) => !this.aliveNodes.has(node)
+    // );
     return {
       primaryNodes: this.nodes,
       backupNodes: this.backupNodes,

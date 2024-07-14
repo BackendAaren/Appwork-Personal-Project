@@ -1,20 +1,18 @@
 import http from "http";
 import { WebSocketServer } from "ws";
-import osUtils from "node-os-utils";
 import path from "path";
 import { fileURLToPath } from "url"; // 引入 fileURLToPath
 import { dirname } from "path"; // 引入 dirname
 import axios from "axios";
 import express from "express";
 import bodyParser from "body-parser";
+import dotenv from "dotenv";
 // Import MessageQueue and MessageType classes
 import { MessageQueue, MessageType } from "./controller/messageQueue.js";
 import { NodeManager } from "./controller/nodeManager.js";
+import cluster from "cluster";
 // 取得目前模組的檔案路徑
 const __filename = fileURLToPath(import.meta.url);
-
-// Start server
-const PORT = 3005;
 // 從檔案路徑中取得目錄路徑
 const __dirname = dirname(__filename);
 const app = express();
@@ -22,30 +20,83 @@ const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 // Middleware
 app.use(bodyParser.json());
+//use dotenv
+dotenv.config();
+//設定port number
+const PORT = process.env.PORT;
+const host = process.env.SERVER_HOST;
 // Initialize MessageQueue instance
 //initialize nodeManager
-const nodes = [
-  "http://localhost:3002",
-  "http://localhost:3003",
-  "http://localhost:3004",
-];
-const backupNodes = [
-  "http://localhost:3005",
-  "http://localhost:3006",
-  "http://localhost:3007",
-];
+let nodes = [host];
+let backupNodes = [];
+let allClusterNodes = [...nodes, ...backupNodes];
 const replicationFactor = 3;
-let nodeManager = new NodeManager(
-  nodes,
-  backupNodes,
-  replicationFactor,
-  `http://localhost:${PORT}`
-);
-// wss.on("connection", (ws) => {
-//   messageQueue.handleMonitorClient(ws); // 將 WebSocket 連線交給 MessageQueue 類別處理
-// });
-const messageQueue = new MessageQueue(`http://localhost:${PORT}`, PORT);
-const messageQueues = {};
+let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
+const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+
+//Receive and setting nodes&backupNods for cluster node
+
+app.post("/set-nodes", async (req, res) => {
+  try {
+    const { nodes: newNodes, backupNodes: newBackupNodes } = req.body;
+    console.log("This is", newNodes);
+    console.log(newBackupNodes);
+    if (!newNodes || !newBackupNodes) {
+      return res
+        .status(400)
+        .json({ error: "nodes and backupNodes are requires" });
+    }
+    const clusterNodes = [...newNodes, ...newBackupNodes];
+    allClusterNodes = [...newNodes, ...newBackupNodes];
+    console.log("這是clusterNodes", clusterNodes);
+    console.log("這是allClusterNodes", allClusterNodes);
+
+    for (const clusterNode of clusterNodes) {
+      if (clusterNode !== host) {
+        try {
+          await axios.post(`${clusterNode}/set_clusterNodes`, {
+            nodes: newNodes,
+            backupNodes: newBackupNodes,
+          });
+        } catch (error) {
+          console.error(`${clusterNode} is not alive`);
+        }
+      }
+    }
+    nodes = newNodes;
+    backupNodes = newBackupNodes;
+    // allClusterNodes = [...newNodes, newBackupNodes];
+    nodeManager.updateNode(nodes, backupNodes, process.env.SERVER_HOST);
+    res
+      .status(200)
+      .json({ message: "Nodes and backup nodes update successfully " });
+  } catch (error) {
+    console.error("Sets nodes error", error);
+    res.status(500).json({ error: "Internal server error", details: error });
+  }
+});
+
+app.post("/set_clusterNodes", async (req, res) => {
+  try {
+    const { nodes: newNodes, backupNodes: newBackupNodes } = req.body;
+
+    if (!newNodes || !newBackupNodes) {
+      return res
+        .status(400)
+        .json({ error: "nodes and backupNodes are requires" });
+    }
+    nodes = newNodes;
+    backupNodes = newBackupNodes;
+    nodeManager.updateNode(nodes, backupNodes);
+    res
+      .status(200)
+      .json({ message: "Nodes and backup nodes update successfully " });
+  } catch (error) {
+    console.error("Failed to update backupNodes");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Route to enqueue a message to a specific channel
 app.post("/enqueue/:channel", async (req, res) => {
   try {
@@ -60,12 +111,9 @@ app.post("/enqueue/:channel", async (req, res) => {
 
     const node = nodeManager.getNodeForKey(channel);
     const message = new MessageType(channel, messageType, payload, node);
-    // console.log(
-    //   `This work node from now ${channel} and ${node} message is ${message}`
-    // );
     // 更新工作分配
     nodeManager.workAssignments[channel] = node;
-    if (node === `http://localhost:${PORT}`) {
+    if (node === process.env.SERVER_HOST) {
       const bkNode = nodeManager.primaryToBackupMap.get(node);
       const backupURL = `${bkNode}/backup/${channel}`;
       await messageQueue.enqueue(channel, message);
@@ -80,8 +128,8 @@ app.post("/enqueue/:channel", async (req, res) => {
 
     res.status(200).json({ message: "Message enqueue successfully" });
   } catch (error) {
-    console.error("Enqueue error:", error);
-    res.status(500).json({ error: "Internal server error", details: error });
+    console.error("Enqueue error:");
+    res.status(500).json({ error: "Internal server error" });
   }
   console.log(messageQueue.getStats());
 });
@@ -93,7 +141,7 @@ app.get("/dequeue/:channel", async (req, res) => {
   console.log(`這是server Side 的連接node: ${node}`);
 
   try {
-    if (node === `http://localhost:${PORT}`) {
+    if (node === process.env.SERVER_HOST) {
       const message = await messageQueue.dequeue(channel);
       const bkNode = nodeManager.primaryToBackupMap.get(node);
       const backupURL = `${bkNode}/updateBackupNode/${channel}`;
@@ -191,27 +239,6 @@ app.post(`/nodeCameUp`, (req, res) => {
   res.send(200);
 });
 
-app.get("/watcher/operationSystemStatus", async (req, res) => {
-  const cpuUsage = await osUtils.cpu.usage().then((cpuPercentage) => {
-    return cpuPercentage;
-  });
-
-  const memUsage = await osUtils.mem.info().then((memInfo) => {
-    console.log("Total Memory:", memInfo.totalMemMb, "MB");
-    console.log("Free Memory:", memInfo.freeMemMb, "MB");
-    console.log("Used Memory:", memInfo.usedMemMb, "MB");
-    return memInfo;
-  });
-
-  const totalStatus = messageQueue.getStats();
-
-  res.status(200).send({ cpuUsage, memUsage, totalStatus });
-});
-
-app.get("/watcher.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "view", "public", "watcher.html"));
-});
-
 // Create HTTP server and attach express app to it
 const server = http.createServer(app);
 // Create WebSocket server and attach it to the HTTP server
@@ -222,5 +249,5 @@ wss.on("connection", (ws) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on ${process.env.SERVER_HOST}`);
 });

@@ -150,29 +150,19 @@ const client = new MessageQueueClient("localhost", 3002);
 
 //   isProcessing2 = false;
 // }, 200);
-let isProcessing3 = false;
-setInterval(async () => {
-  if (isProcessing3) {
-    return;
-  }
-  isProcessing3 = true;
 
+setInterval(async () => {
   try {
     const message = await client.dequeueMessage("channel1", true);
     console.log(`This is dequeue: ${message}`);
-
     const parsedMessage = JSON.parse(message);
-
-    // 模擬特定訊息處理出錯的情況
-
+    // 處理訊息會出現的特定情況
     console.log(`Processing message: ${parsedMessage.messageID}`);
     await client.ackMessage("channel1", parsedMessage.messageID);
   } catch (error) {
-    console.error(`Error processing message: ${error.message}`);
     // 可以進行錯誤處理，例如重新入隊、記錄錯誤等
+    console.error(`Error processing message: ${error.message}`);
   }
-
-  isProcessing3 = false;
 }, 600);
 
 // function enqueueMessages(channel, count) {
@@ -190,27 +180,27 @@ setInterval(async () => {
 // enqueueMessages("channel3", 1);
 // enqueueMessages("channel4", 1);
 
-setInterval(() => {
-  client.enqueueMessage("channel1", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 300);
-setInterval(() => {
-  client.enqueueMessage("channel2", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
-setInterval(() => {
-  client.enqueueMessage("channel3", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
-setInterval(() => {
-  client.enqueueMessage("channel4", {
-    messageType: "text",
-    payload: `Message:${Math.random() + 10}`,
-  });
-}, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel1", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 300);
+// setInterval(() => {
+//   client.enqueueMessage("channel2", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel3", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
+// setInterval(() => {
+//   client.enqueueMessage("channel4", {
+//     messageType: "text",
+//     payload: `Message:${Math.random() + 10}`,
+//   });
+// }, 1000);
