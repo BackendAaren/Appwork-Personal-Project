@@ -2,14 +2,15 @@ version: '3.8'
 
 services:
   app:
-    image: lionmq:latest  # 使用 lionmq 的映像
+    image: aarenow95/lionmq:latest  # 使用 lionmq 的映像
     ports:
-      - "3002:3002"
+      - "80:80"
     environment:
-      - PORT=3002
-      - SERVER_HOST=http://10.101.4.132:3002
-      - WATCHER_SERVER=ws://10.101.4.132:3008
-      - MONGODB_SERVER=MONGODB_SERVER=mongodb+srv://Aaren:3030416@cluster0.mollxex.mongodb.net/?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true
+
+      - PORT=80
+      - SERVER_HOST=http://52.62.184.240
+      - WATCHER_SERVER=ws://13.237.98.165
+      - MONGODB_SERVER=mongodb+srv://Aaren:3030416@cluster0.mollxex.mongodb.net/?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true
       - MONGODB_DOCUMENT=LionMQ_node1
     depends_on:
       - mongo
@@ -19,7 +20,7 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27018:27017"
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
 
