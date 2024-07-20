@@ -3,7 +3,7 @@ import crc from "crc";
 import { WebSocket } from "ws";
 import dotenv from "dotenv";
 dotenv.config();
-const websocketHost = process.env.WATCHER_SERVER;
+const websocketHost = process.env.WATCHER_SERVER || "ws://localhost:3008";
 
 export class NodeManager {
   constructor(nodes, backupNodes, replicationFactor, port) {
