@@ -21,7 +21,6 @@ export const checkNodeStatus = async (req, res) => {
   const primaryNodeStatus = nodeManager.getPrimaryNodes(); // 確保這裡是調用函數
   res.status(200).json({ primaryNodes: primaryNodeStatus }); // 使用 .json() 方法
 };
-1;
 
 export const receiveNodesCameUp = async (rea, res) => {
   const { node } = req.body;

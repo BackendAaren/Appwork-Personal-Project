@@ -7,6 +7,7 @@ import enqueue from "./router/enqueueRouter.js";
 import dequeue from "./router/dequeueRouter.js";
 import ack from "./router/ackRouter.js";
 import nodesBackup from "./router/nodesBackupRoter.js"; // 修改拼寫錯誤
+import nodeManage from "./router/nodeManageRouter.js";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use("/", enqueue);
 app.use("/", dequeue);
 app.use("/", ack);
 app.use("/", nodesBackup);
+app.use("/", nodeManage);
 
 // Create HTTP server and attach express app to it
 const server = http.createServer(app);
