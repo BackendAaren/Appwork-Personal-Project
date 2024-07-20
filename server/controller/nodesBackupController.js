@@ -1,15 +1,17 @@
-import { MessageQueue, MessageType } from "./messageQueue.js";
-import dotenv from "dotenv";
-dotenv.config();
+// import { MessageQueue, MessageType } from "./messageQueue.js";
+// import dotenv from "dotenv";
+// dotenv.config();
 
-const PORT = process.env.PORT;
-const host = process.env.SERVER_HOST;
+// const PORT = process.env.PORT;
+// const host = process.env.SERVER_HOST;
 
-//Initialize Primary Node & BackupNodes set
-let nodes = [host];
-let backupNodes = [];
-//Initialize Message Queue & NodeManager
-const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+// //Initialize Primary Node & BackupNodes set
+// let nodes = [host];
+// let backupNodes = [];
+// const replicationFactor = 3;
+// //Initialize Message Queue & NodeManager
+// const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+import { messageQueue, nodeManager } from "./initialize.js";
 //Primary Nodes Backup
 export const nodesBackup = async (req, res) => {
   try {

@@ -1,10 +1,12 @@
-import { MessageQueue, MessageType } from "./messageQueue.js";
-import dotenv from "dotenv";
-dotenv.config();
-const PORT = process.env.PORT;
-const host = process.env.SERVER_HOST;
+// import { MessageQueue, MessageType } from "./messageQueue.js";
+// import dotenv from "dotenv";
+// dotenv.config();
+// const PORT = process.env.PORT;
+// const host = process.env.SERVER_HOST;
 
-const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+// const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+
+import { messageQueue } from "./initialize.js";
 
 export const autoAcknowledgement = async (req, res) => {
   const { channel, messageID } = req.params;

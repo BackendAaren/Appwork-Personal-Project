@@ -1,15 +1,16 @@
-import axios from "axios";
-import dotenv from "dotenv";
-import { NodeManager } from "./nodeManager.js";
-dotenv.config();
+// import axios from "axios";
+// import dotenv from "dotenv";
+// import { NodeManager } from "./nodeManager.js";
+// dotenv.config();
 
-const PORT = process.env.PORT;
-const host = process.env.SERVER_HOST;
-const replicationFactor = 3;
+// const PORT = process.env.PORT;
+// const host = process.env.SERVER_HOST;
+// const replicationFactor = 3;
 
-let nodes = [host];
-let backupNodes = [];
-let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
+// let nodes = [host];
+// let backupNodes = [];
+// let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
+import { messageQueue, nodeManager } from "./initialize.js";
 
 export const setNodes = async (req, res) => {
   try {

@@ -1,18 +1,20 @@
-import { MessageQueue, MessageType } from "./messageQueue.js";
-import { NodeManager } from "./nodeManager.js";
-import dotenv from "dotenv";
-import axios from "axios";
-dotenv.config();
+// import { MessageQueue, MessageType } from "./messageQueue.js";
+// import { NodeManager } from "./nodeManager.js";
+// import dotenv from "dotenv";
+// import axios from "axios";
+// dotenv.config();
 
-const PORT = process.env.PORT;
-const host = process.env.SERVER_HOST;
+// const PORT = process.env.PORT;
+// const host = process.env.SERVER_HOST;
 
-//Initialize Primary Node & BackupNodes set
-let nodes = [host];
-let backupNodes = [];
-//Initialize Message Queue & NodeManager
-let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
-const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+// //Initialize Primary Node & BackupNodes set
+// let nodes = [host];
+// let backupNodes = [];
+// const replicationFactor = 3;
+// //Initialize Message Queue & NodeManager
+// let nodeManager = new NodeManager(nodes, backupNodes, replicationFactor, host);
+// const messageQueue = new MessageQueue(process.env.SERVER_HOST, PORT);
+import { messageQueue, nodeManager } from "./initialize.js";
 
 //Enqueue Function
 export const enqueue = async (req, res) => {
