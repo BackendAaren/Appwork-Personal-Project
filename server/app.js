@@ -1,6 +1,7 @@
 import http from "http";
 import { WebSocketServer } from "ws";
 import express from "express";
+import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import setNodes from "./router/setNodes_Router.js";
 import enqueue from "./router/enqueueRouter.js";
@@ -9,9 +10,9 @@ import ack from "./router/ackRouter.js";
 import nodesBackup from "./router/nodesBackupRoter.js"; // 修改拼寫錯誤
 import nodeManage from "./router/nodeManageRouter.js";
 
-dotenv.config();
-
 const app = express();
+dotenv.config();
+app.use(bodyParser.json());
 app.use(express.json()); // Ensure you are using express.json() for parsing JSON bodies
 app.use("/", setNodes);
 app.use("/", enqueue);

@@ -22,8 +22,8 @@ export const checkNodeStatus = async (req, res) => {
   res.status(200).json({ primaryNodes: primaryNodeStatus }); // 使用 .json() 方法
 };
 
-export const receiveNodesCameUp = async (rea, res) => {
+export const receiveNodesCameUp = async (req, res) => {
   const { node } = req.body;
   nodeManager.receiveNodeCameUpNotification(node);
-  res.send(200);
+  res.status(200);
 };
