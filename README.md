@@ -8,7 +8,7 @@ LionMQ is a distributed message queue system composed of the following component
 * **[*LionMQWatcher*](https://github.com/BackendAaren/LionMQ_watcher)**: A monitoring tool for the LionMQ system, offering real-time health monitoring, status updates, and performance metrics visualization.
 
 # Contents
-- [How to use LionMQ](#How-to-use-LionMQ)
+- [How to use LionMQ](#How-to-start-LionMQ-service)
 
 # Demo
   
@@ -142,3 +142,7 @@ npm install lionmq-clientside
 
  > **Note:** For detailed operational commands and specifications, please consult the [*LionMQ Client*](https://github.com/BackendAaren/LIONMQ_client) documentation.
 
+# Contact
+Email: aaren.backend.ow95@gmail.com
+
+LinkedIn: https://www.linkedin.com/in/%E5%8D%9A%E5%B4%B4-%E5%BC%B5-2a346b233/
