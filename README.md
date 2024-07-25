@@ -1,9 +1,9 @@
 # LionMQ
 LionMQ is a distributed message queue system composed of the following components:
 
-* **[*LionMQ*](https://github.com/BackendAaren/LionMQ)**: The core message queue system responsible for receiving, storing, and distributing messages. It supports features such as high availability, dynamic scaling, and load balancing.
+* **[*LionMQ*](https://github.com/BackendAaren/LionMQ)**: The core message queue system handles message reception, storage, and distribution. It features failure requeue, auto-acknowledgment, and message persistence, with advanced capabilities such as high availability, dynamic scaling, and load balancing.
 
-* **[*LionMQ Client*](https://github.com/BackendAaren/LIONMQ_client)**: The client library that provides an API for interacting with the LionMQ system. Users can publish, subscribe, and process messages through this library.
+* **[*LionMQ Client*](https://www.npmjs.com/package/lionmq-clientside)**: The client library that provides an API for interacting with the LionMQ system. Users can publish, subscribe, control cluster system , and process messages through this library.
 
 * **[*LionMQWatcher*](https://github.com/BackendAaren/LionMQ_watcher)**: A monitoring tool for the LionMQ system, offering real-time health monitoring, status updates, and performance metrics visualization.
 
@@ -14,9 +14,9 @@ LionMQ is a distributed message queue system composed of the following component
   
 
 # Features
- * **High Availability**: LionMQ Cluster ensures message high availability via mirrored queues, replicating messages across nodes to prevent data loss during node failures.
+ * **High Availability**: LionMQ Cluster ensures message high availability via backup nodesa and MongoDB, replicating messages across nodes to prevent data loss during node failures.
    
- * **Horizontal Scaling**: LionMQ Cluster’s capacity scales horizontally by adding nodes, enhancing overall throughput as each node handles client connections and message processing.
+ * **Horizontal Scaling**: LionMQ Cluster scales horizontally by adding nodes using Docker, with deployment simplified through a docker-compose.yml file, enhancing throughput as nodes manage connections and processing.
    
  * **Automatic Sharding**: LionMQ Cluster automatically shards queues across nodes, balancing load and optimizing performance through efficient resource utilization.
    
@@ -35,7 +35,68 @@ LionMQ is a distributed message queue system composed of the following component
 
 # Architecture & Workflow
 ## Service
+
+### LionMQ  
+
+LionMQ is packaged with Docker and deployed to Docker Hub, supporting two modes.
+
+   * Single node mode (Default)
+     1.  **Message Persistence**: Messages are automatically persisted to MongoDB following enqueuing.
+        
+     2. **Automatic Acknowledgment**: LionMQ only removes messages from the queue after receiving acknowledgment from the client.
+        
+     3.  **Failure Replay Mechanism**: If LionMQ receives a reject message from the client or fails to receive acknowledgment within a predefined timeout, the message is requeued until successful processing or until the maximum retry limit is reached.
+  * Cluster mode
+
+    1. **Multimaster Architecture**: The cluster features multiple primary nodes, each with its own dedicated backup nodes for redundancy.
+   
+    2. **Load Balancing**: All primary nodes within the cluster automatically allocate different channels for processing tasks through a hashing mechanism.
+   
+    3. **Heartbeat Mechanism**: Each node in the LionMQ cluster continuously verifies the status of other nodes through network communication to ensure their availability.
+   
+    4. **Synchronous Backup**: Backup nodes synchronize all information from primary nodes, including the processing state of all messages.
+   
+    5. **Failover Resilience**: In the event of a primary node failure, standby nodes retrieve messages from the database and ensure that previously processed messages are not reprocessed.
+   
+    6. **Automatic State Synchronization**: All nodes in the cluster maintain a consistent view of the cluster’s state. Nodes that go offline due to failure are automatically updated with the current state information upon rejoining.
+       
+### LionMQ-Client
+
+LionMQClient is an npm package that offers users streamlined operational mechanisms, encompassing four primary functionalities:
+
+  1. Enqueue: Facilitates the connection to message sources and enqueues messages into LionMQ.
+
+  2. Dequeue: Allows users to route messages to designated endpoints for processing or storage.
+
+  3. Ack: Enables the incorporation of acknowledgment endpoints within the dequeue operation for message confirmation.
+
+  4. Set-Nodes (Cluster): Provides functionality for users to configure the number of nodes and their primary-replica relationships within the cluster according to their needs.
+
+
+### LionMQWatcher
+
+LionWatcher is also packaged with Docker and operates based on WebSocket. Each node continuously sends message queue and group status information to LionMQWatcher in real-time. Combined with Chart.js, users can clearly view the status of each node.
+
+1. Message Queue Metrics: Includes current queue length, message enqueue and dequeue counts, active message, message delay, inbound and outbound rates, and CPU and memory usage.
+
+2. Node Status and IP Address: Provides the status and IP address of each node, indicating whether it is a Primary node, Backup node, or has experienced a failure.
+ 
+
+
+
+
+
 # How to start LionMQ service
+  
+  
+  
+
+
+
+
+
+
+
 
 ## Step 1:
 Download the YAML file and run the `docker compose up` command in the terminal.
