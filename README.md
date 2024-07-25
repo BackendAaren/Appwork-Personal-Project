@@ -87,27 +87,24 @@ LionWatcher is also packaged with Docker and operates based on WebSocket. Each n
 
 
 # How to start LionMQ service
-  
-  
-  
+ ## 1. Start a LionMQ server  
+#### Step 1:
 
-
-
-
-
-
-
-
-## Step 1:
 Download the YAML file and run the `docker compose up` command in the terminal.
 [LionMQ docker-compose.yml](https://github.com/BackendAaren/Appwork-Personal-Project/blob/main/docker-compose.yml)
-## Step 2:
-Modify the environment variables in the YAML file.
-#### PORT: Enter your server port
-#### SERVER_HOST: Enter your server IP
-#### WATCHER_SERVER: Enter your LionMQ Watcher Server IP
-#### MONGODB_SERVER:
-If you use Atlas to monitor your mongodb please enter your connection URL 
-ex.(mongodb+srv://(your usernamer):(your password)@cluster0.mollxex.mongodb.net/?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=true)
-#### MONGODB_DOCUMENT: Enter your the name that you want to show up on your mongodb document 
+```shell
+docker compose up
+```
+
+#### Step 2:
+
+ Environment Variables | Description | Example |
+ ---------------- | --------| -----------------|
+ ports            | Host Port: 80, Container Port: Same as the port you listen in container | 80:80
+ PORT             | Enter the port listen in container you want | 80
+ SERVER_HOST      | Enter your server IP | http://54.253.72.250
+ WATCHER_SERVER   | Enter your LionMQ Watcher Server IP| ws://13.237.98.165
+ MONGODB_SERVER   | Dependind you use MongoDB Atlas or MongoDB Compass  | [Atlas](https://cloud.mongodb.com/v2/666be7ef63c16005dcf78a8a#/overview), [MongoDB Compass](https://www.mongodb.com/products/tools/compass)
+ MONGODB_DOCUMENT | Enter your the name that you want to show up on your mongodb document | LionMQ_node2
+ 
 ![example](image/docker_yml.png)
