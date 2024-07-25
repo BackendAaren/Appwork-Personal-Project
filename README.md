@@ -11,7 +11,8 @@ LionMQ is a distributed message queue system composed of the following component
 - [How to use LionMQ](#How-to-start-LionMQ-service)
 
 # Demo
-  
+   <img src="image/LionWatcher.gif" alt="Image" style="width: 450px;"/>    <img src="image/NodeStatus.png" alt="Image" style="width: 550px; height: 316px;"/>
+
 
 # Features
  * **High Availability**: LionMQ Cluster ensures message high availability via backup nodesa and MongoDB, replicating messages across nodes to prevent data loss during node failures.
@@ -107,7 +108,7 @@ Download the YAML file and run the `docker compose up` command in the terminal.
  MONGODB_DOCUMENT | Enter your the name that you want to show up on your mongodb document | LionMQ_node2
  
  <div style="text-align: center;">
-    <img src="image/docker_yml.png" alt="Image" style="width: 500px;"/>
+    <img src="image/docker_yml.png" alt="Image" style="width: 400px;"/>
  </div>
 
 #### Step 3:
@@ -145,4 +146,4 @@ npm install lionmq-clientside
 # Contact
 Email: aaren.backend.ow95@gmail.com
 
-LinkedIn: https://www.linkedin.com/in/%E5%8D%9A%E5%B4%B4-%E5%BC%B5-2a346b233/
+LinkedIn: [Aaren](https://www.linkedin.com/in/%E5%8D%9A%E5%B4%B4-%E5%BC%B5-2a346b233/)
