@@ -35,6 +35,11 @@ LionMQ is a distributed message queue system composed of the following component
 
 
 # Architecture & Workflow
+![HeartBeat](image/Heartbeat.gif)
+![HeartBeat](image/AutoShardiung.png)
+![HeartBeat](image/FailOver.gif)
+
+
 ## Service
 
 ### LionMQ  
