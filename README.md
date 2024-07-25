@@ -87,17 +87,16 @@ LionWatcher is also packaged with Docker and operates based on WebSocket. Each n
 
 
 # How to start LionMQ service
+
  ## 1. Start a LionMQ server  
 #### Step 1:
 
 Download the YAML file and run the `docker compose up` command in the terminal.
 [LionMQ docker-compose.yml](https://github.com/BackendAaren/Appwork-Personal-Project/blob/main/docker-compose.yml)
-```shell
-docker compose up
-```
+
 
 #### Step 2:
-
+**Refine and modify the configuration details within your docker-compose.yml file.**
  Environment Variables | Description | Example |
  ---------------- | --------| -----------------|
  ports            | Host Port: 80, Container Port: Same as the port you listen in container | 80:80
@@ -107,4 +106,39 @@ docker compose up
  MONGODB_SERVER   | Dependind you use MongoDB Atlas or MongoDB Compass  | [Atlas](https://cloud.mongodb.com/v2/666be7ef63c16005dcf78a8a#/overview), [MongoDB Compass](https://www.mongodb.com/products/tools/compass)
  MONGODB_DOCUMENT | Enter your the name that you want to show up on your mongodb document | LionMQ_node2
  
-![example](image/docker_yml.png)
+ <div style="text-align: center;">
+    <img src="image/docker_yml.png" alt="Image" style="width: 500px;"/>
+ </div>
+
+#### Step 3:
+**Please ensure that your Docker services are fully operational and correctly initialized. Additionally, verify that the docker-compose.yml file is located within the directory where you intend to launch the project.**
+```shell
+docker compose up
+```
+
+
+ ## 2. Start a LionMQWatcher server
+```shell
+docker run -p <port> -e PORT=<Container Port> -e WATCHER_HOST=<SERVER_IP> aarenow95/lionmqwatcher
+```
+ Environment Variables | Description | Example |
+ ---------------- | --------| -----------------|
+ port | Host Port: 80, Container Port: Same as the port you listen in container | 80:80
+ PORT             | Enter the port listen in container you want | 80
+ SERVER_IP      | Enter your server IP | 13.237.98.165
+
+> **Warning:** Make sure you start the **LionMQWatcher server** first before you start **LionMQ server**
+
+
+
+ ## 3. Start a LionMQClient service
+```shell
+npm install lionmq-clientside
+```
+ Environment Variables | Description | Example |
+ ---------------- | --------| -----------------|
+ host | Enter your LionMQ server IP | "54.253.72.250"
+ PORT | Enter the Host port you listen in LionMQ container | "80"
+
+ > **Note:** For detailed operational commands and specifications, please consult the [*LionMQ Client*](https://github.com/BackendAaren/LIONMQ_client) documentation.
+
