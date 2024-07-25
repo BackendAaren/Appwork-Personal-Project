@@ -11,7 +11,7 @@ LionMQ is a distributed message queue system composed of the following component
 - [How to use LionMQ](#How-to-start-LionMQ-service)
 
 # Demo
-   <img src="image/LionWatcher.gif" alt="Image" style="width: 600px;"/>    <img src="image/NodeStatus.png" alt="Image" style="width: 600px; height: 316px;"/>
+   <img src="image/LionWatcher.gif" alt="Image" style="width: 800px;"/>    <img src="image/NodeStatus.png" alt="Image" style="width: 800px; height: 350x;"/>
 
 
 # Features
