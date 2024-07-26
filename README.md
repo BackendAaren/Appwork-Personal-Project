@@ -10,8 +10,8 @@ LionMQ is a distributed message queue system composed of the following component
 # Contents
 - [Demo](#Demo)
 - [Features](#Features)
-- [Architecture & Workflow](#Architecture-&-Workflow)
-
+- [Architecture & Workflow](#Architecture&Workflow)
+- [Service](#Service)
 - [How to use LionMQ](#How-to-start-LionMQ-service)
 - [Contact](#Contact)
 
@@ -39,7 +39,7 @@ LionMQ is a distributed message queue system composed of the following component
  * **Failover**: LionMQ provides seamless failover by automatically transferring queues from failed nodes to backup node, ensuring continuous availability.If a primary node fails, backup nodes retrieve pending messages from the database and reinsert them into the corresponding queue, ensuring seamless task continuity without message duplication.
 
 
-# Architecture & Workflow
+# Architecture&Workflow
 ![HeartBeat](image/HeartBeat.gif)
 ![HeartBeat](image/AutoSharding.png)
 ![HeartBeat](image/FailOver.gif)
