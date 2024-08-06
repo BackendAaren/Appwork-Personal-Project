@@ -30,7 +30,7 @@ LionMQ is a distributed message queue system composed of the following component
    
  * **Multi-Host Support**: LionMQ Cluster supports deployment across multiple hosts, improving reliability and scalability by enabling cooperative processing of messages.
    
- * **Dynamic Node Management**: [*LionMQ Client*](https://github.com/BackendAaren/LIONMQ_client) supports dynamic node management, allowing for non-disruptive scaling by adding or removing nodes as needed.
+ * **Dynamic Node Management**: [*LionMQ Client*](https://www.npmjs.com/package/lionmq-clientside) supports dynamic node management, allowing for non-disruptive scaling by adding or removing nodes as needed.
    
  * **Data Visualization and Real-Time Monitoring**:[*LionMQWatcher*](https://github.com/BackendAaren/LionMQ_watcher) provides comprehensive monitoring of each node's health status, tracks data processing progress within the message queues, and delivers detailed server metrics.
    
